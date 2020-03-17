@@ -1,0 +1,21 @@
+In SL3, everything is either a function, number or list.
+======================================================================================
+
+<defs> -> <def> |
+          <def> <defs>
+
+<def> -> (define(name) <expr> ) |
+         (define(name) <params> ) <expr> )
+
+<params> -> name |
+            name <params>
+
+<expr> -> number |
+          name |
+          <list>
+
+<list> -> () |
+          (<items>)
+
+<items> -> <expr> |
+           <expr> <items>
