@@ -50,6 +50,7 @@ public class Lexer {
                   state = 1;
                }
                else if ( sym == '(' || sym == ')' ) { //"(" and ")" symbols are tokens
+                  data += (char) sym; //add '(' or ')' symbol to current data
                   state = 2;
                   done = true; //this is an accepting state, so done = true, exit loop to create and return token
                }
@@ -128,7 +129,7 @@ public class Lexer {
                   data += (char) sym; //add letter symbol/character to current data
                   state = 7; //stay in state 7 (technically dont need this line since its already in state 5)
                }
-               if ( digit(sym) ) { //check if next symbol is a digit
+               else if ( digit(sym) ) { //check if next symbol is a digit
                   data += (char) sym; //add digit symbol/character to current data
                   state = 7; //stay in state 5 (technically dont need this line since its already in state 5)
                }
@@ -144,11 +145,11 @@ public class Lexer {
          Token token;
 
          if ( state == 2 ) {
-            if ( data.equals("(") ) {
+            if ( sym == '(' ) {
               return new Token( "LPAREN", data );
             }
-            else if ( data.equals(")") ) {
-               return new Token( "RPAREN", data );
+            else { //implies ")"
+              return new Token( "RPAREN", data );
             }
          }
          else if ( state == 4 || state == 5 ) {
@@ -183,8 +184,8 @@ public class Lexer {
            error("somehow Lexer FA halted in bad state " + state );
            return null;
          }
-     }// else generate token from input
-   }// getNext
+      } //else generate token from input
+   } //getNext
 
    public Token getNextToken() {
      Token token = getNext();
