@@ -54,8 +54,9 @@ public class Lexer {
                   state = 2;
                   done = true; //this is an accepting state, so done = true, exit loop to create and return token
                }
-               else if ( sym == '-' ) { //digits can optionally be negative and begin with "-"
-                  data += (char) sym; //prefix "-" to the data of digit symbols
+               else if ( sym == '(' ) { // ASCII 40 is "(" 
+                  data += (char) sym;
+
                   state = 3;
                }
                else if ( digit( sym ) ) { //symbol is any digit
@@ -177,7 +178,7 @@ public class Lexer {
                return new Token( data, "" ); //NAME or "define" token
             }
             else {
-               return new Token( "var", data );
+               return new Token( "NAME", data ); // DEREK: changed this to NAME, it was "var" in Corgi
             }
          }
          else { //Lexer error
