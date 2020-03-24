@@ -53,7 +53,7 @@ public class Lexer {
                   data += (char) sym;
                   state = 2;
                }
-               else if ( sym == '(' ) {
+               else if ( sym == '(' ) { // ASCII 40 is "(" 
                   data += (char) sym;
                   state = 3;
                   done = true;
@@ -174,7 +174,7 @@ public class Lexer {
                return new Token( data, "" ); //NAME or "define" token
             }
             else {
-               return new Token( "var", data );
+               return new Token( "NAME", data ); // DEREK: changed this to NAME, it was "var" in Corgi
             }
          }
          else if ( state == 3 ) {
