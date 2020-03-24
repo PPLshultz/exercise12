@@ -37,10 +37,10 @@ public class Lexer {
          return token;
       }
       else {
-         int state = 1;  // state of FA
-         String data = "";  // specific info for the token
+         int state = 1;  //state of finite automaton, initial state is 1
+         String data = "";  //collective info for the current token
          boolean done = false;
-         int sym;  // holds current symbol, values are in ASCII
+         int sym;  //holds current symbol, values are in ASCII
          do {
             sym = getNextSymbol();
             //System.out.println("current symbol: " + sym + " state = " + state );
@@ -49,104 +49,94 @@ public class Lexer {
                if ( sym == 9 || sym == 10 || sym == 13 || sym == 32 ) {
                   state = 1;
                }
-               else if ( letter(sym) ) { //any letter (not just lowercase)
-                  data += (char) sym;
+               else if ( sym == '(' || sym == ')' ) { //"(" and ")" symbols are tokens
+                  data += (char) sym; //add '(' or ')' symbol to current data
                   state = 2;
+                  done = true; //this is an accepting state, so done = true, exit loop to create and return token
                }
                else if ( sym == '(' ) { // ASCII 40 is "(" 
                   data += (char) sym;
+
                   state = 3;
-                  done = true;
                }
-               else if ( sym == ')' ) {
-                  data += (char) sym;
+               else if ( digit( sym ) ) { //symbol is any digit
+                  data += (char) sym; //add digit symbol to current data
                   state = 4;
-                  done = true;
                }
-               else if ( sym == '-' ) {
-                  data += (char) sym;
-                  state = 5;
+               else if ( sym == ';' ) { //symbol for beginning of comment
+                  state = 8;
                }
-               else if ( digit( sym ) ) {
-                  data += (char) sym;
+               else if ( sym == -1 ) { //symbol is EOF, which means end of file
                   state = 6;
+                  done = true; //this is an accepting state, so done = true, exit loop to create and return EOF token
                }
-               else if ( sym == -1 ) { //symbol is eot, end of file
-                  state = 9;
-                  done = true;
-               }
-               else if ( sym == ';' ) { //symbol for comment
-                  state = 10;
+               else if ( letter(sym) ) { //any letter (not just lowercase)
+                  data += (char) sym;
+                  state = 7;
                }
                else {
                  error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
                }
             }
 
-            else if ( state == 2 ) {
-               if ( letter(sym) || digit(sym) ) {
+            else if ( state == 3 ) {
+               if ( digit(sym) ) { //check if next symbol is a digit
                   data += (char) sym;
-                  state = 2;
+                  state = 4; //go to state 4 if symbol was a digit
                }
-               else { //done with NAME token
-                 putBackSymbol( sym );
-                 done = true;
+               else {
+                 error("Error in lexical analysis phase with symbol " + sym + " in state " + state ); //error if we dont get a digit after "-"
+               }
+            }
+
+            else if ( state == 4 ) {
+               if ( digit(sym) ) { //check if next symbol is a digit
+                  data += (char) sym; //add digit symbol/character to current data
+                  state = 4; //stay in state 4 (technically dont need this line since its already in state 4)
+               }
+               else if ( sym == '.' ) { //check if next symbol is a decimal symbol
+                  data += (char) sym; //add decimal symbol/character to current data
+                  state = 5; //go to state 5, which should find more digit(s)
+               }
+               else { //there are no more digits or '.' decimal symbols
+                  putBackSymbol( sym ); //put digit symbol back on stack
+                  done = true;
                }
             }
 
             else if ( state == 5 ) {
-               if ( digit(sym) ) {
-                  data += (char) sym;
-                  state = 6;
+               if ( digit(sym) ) { //check if next symbol is a digit
+                  data += (char) sym; //add digit symbol/character to current data
+                  state = 5; //stay in state 5 (technically dont need this line since its already in state 5)
                }
-               else {
-                 error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
-               }
-            }
-
-            else if ( state == 6 ) {
-               if ( digit(sym) ) { //still reading a digit so stay in state 6
-                  data += (char) sym;
-                  state = 6;
-               }
-               else if( sym == '.' ) {
-                  data += (char) sym;
-                  state = 7;
-               }
-               else { //end of state 6
-                  putBackSymbol( sym );
+               else { //there are no more digit symbols
+                  putBackSymbol( sym ); //put digit symbol back on stack
                   done = true;
-               }
-            }
-
-            else if ( state == 7 ) {
-               if ( digit(sym) ) {
-                  data += (char) sym;
-                  state = 8;
-               }
-               else {
-                  error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
                }
             }
 
             else if ( state == 8 ) {
-               if ( digit(sym) ) { //still reading a digit so stay in state 8
-                  data += (char) sym;
-                  state = 8;
+               if ( sym == 10 || sym == 13 ) { //check if symbol is a new line (10) or carriage return (13)
+                  state = 1; //if above line is true, we've reached the end of the comment line, set state to 1
+                  data = ""; //these are comments so empty the data
                }
-               else { //end of state 8
-                  putBackSymbol( sym );
-                  done = true;
+               else { //still part of the comment line
+                  state = 8; //stay in state 8
                }
             }
 
-            else if ( state == 10 || state == 11 ) { //comment
-               if ( sym == 10 || sym == 13 ) { //check if symbol is new line or carriage return
-                  state = 1; //end of comment, go back to state 1
-                  data = "";
+            else if ( state == 7 ) {
+               if ( letter(sym) ) { //check if next symbol is a letter
+                  data += (char) sym; //add letter symbol/character to current data
+                  state = 7; //stay in state 7 (technically dont need this line since its already in state 5)
                }
-               else {
-                  state = 11;  //still a comment, stay in state 11
+               else if ( digit(sym) ) { //check if next symbol is a digit
+                  data += (char) sym; //add digit symbol/character to current data
+                  state = 7; //stay in state 5 (technically dont need this line since its already in state 5)
+               }
+               else { //there are no more letters or digit symbols
+                  putBackSymbol( sym ); //put letter or digit symbol back on stack
+                  done = true;
                }
             }
 
@@ -156,6 +146,20 @@ public class Lexer {
          Token token;
 
          if ( state == 2 ) {
+            if ( sym == '(' ) {
+              return new Token( "LPAREN", data );
+            }
+            else { //implies ")"
+              return new Token( "RPAREN", data );
+            }
+         }
+         else if ( state == 4 || state == 5 ) {
+            return new Token( "NUMBER", data );
+         }
+         else if ( state == 6 ) {
+            return new Token( "eof", data );
+         }
+         else if ( state == 7 ) {
             // now anything starting with letter is either
             // a NAME keyword or variable
             if ( data.equals("define") || data.equals("if") ||
@@ -177,25 +181,12 @@ public class Lexer {
                return new Token( "NAME", data ); // DEREK: changed this to NAME, it was "var" in Corgi
             }
          }
-         else if ( state == 3 ) {
-            return new Token( "LPAREN", data );
-         }
-         else if ( state == 4 ) {
-            return new Token( "RPAREN", data );
-         }
-         else if ( state == 6 || state == 8 ) {
-            return new Token( "NUMBER", data );
-         }
-         else if ( state == 9 ) {
-            return new Token( "eof", data );
-         }
-
-         else {// Lexer error
+         else { //Lexer error
            error("somehow Lexer FA halted in bad state " + state );
            return null;
-        }
-     }// else generate token from input
-   }// getNext
+         }
+      } //else generate token from input
+   } //getNext
 
    public Token getNextToken() {
      Token token = getNext();
