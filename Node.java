@@ -64,7 +64,7 @@ public class Node {
   }
 
   public String toString() {
-    return "#" + id + "[" + kind + "," + info + "]<" + nice(first) + " " + nice(second) + ">";
+    return "                                                  = Node #" + id + "[" + kind + "," + info + "]<" + nice(first) + " " + nice(second) + ">";
   }
 
   public String nice( Node node ) {
@@ -106,18 +106,41 @@ public class Node {
 
       System.out.println("Executing node " + id + " of kind " + kind );
 
-      if ( kind.equals("program") ) {
+      //if ( kind.equals("program") ) {
+      if ( kind.equals("defs") ) {
          root = this;  // note the root node of entire tree
-         first.execute();  // execute the "main" funcCall
+         first.execute();
       }// program
 
+      else if( kind.equals("def") ) {
+        first.execute();
+        if ( second != null ) {
+          second.execute();
+        }
+      }
+
+      else if( kind.equals("NAME") ) {
+        System.out.println("NAME info = " + info);
+      }
+
+      else if( kind.equals("list") ) {
+        first.execute();
+      }
+
+      else if( kind.equals("items") ) {
+        first.execute();
+        if ( second != null ) {
+          second.execute();
+        }
+      }
+
       else if ( kind.equals("stmts") ) {
-         first.execute();
-         // returning is a flag saying that first
-         // wants to return, so don't do this node's second
-         if ( second != null && !returning ) {
-            second.execute();
-         }
+        first.execute();
+        // returning is a flag saying that first
+        // wants to return, so don't do this node's second
+        if ( second != null && !returning ) {
+          second.execute();
+        }
       }// stmts
 
       else if ( kind.equals("funcCall") ) {
@@ -201,7 +224,7 @@ public class Node {
 
       if ( kind.equals("var") ) {
          return table.retrieve( info );
-      }// var
+      } //var
 
       else if ( kind.equals("num") ) {
          return Double.parseDouble( info );
