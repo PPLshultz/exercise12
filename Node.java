@@ -18,12 +18,18 @@ public class Node {
                         // the actual identifier for an I
 
   // references to children in the parse tree
-  private Node first, second, third;
+  private Node first, second, third; 
 
   // stack of memories for all pending calls
   private static ArrayList<MemTable> memStack = new ArrayList<MemTable>();
+
   // convenience reference to top MemTable on stack
   private static MemTable table = new MemTable();
+
+//****************************************************************************************************************************** */
+//Create the array of arrays to store content for array implementation in Corgi
+  private static CorgiArray arrayOfArrays = new CorgiArray();
+//****************************************************************************************************************************** */
 
   // status flag that causes <stmts> nodes to abort asking second
   // to execute
@@ -38,7 +44,7 @@ public class Node {
 
   // construct a common node with no info specified
   public Node( String k, Node one, Node two, Node three ) {
-    kind = k;  info = "";
+    kind = k;  info = "";  
     first = one;  second = two;  third = three;
     id = count;
     count++;
@@ -47,7 +53,7 @@ public class Node {
 
   // construct a node with specified info
   public Node( String k, String inf, Node one, Node two, Node three ) {
-    kind = k;  info = inf;
+    kind = k;  info = inf;  
     first = one;  second = two;  third = three;
     id = count;
     count++;
@@ -56,7 +62,7 @@ public class Node {
 
   // construct a node that is essentially a token
   public Node( Token token ) {
-    kind = token.getKind();  info = token.getDetails();
+    kind = token.getKind();  info = token.getDetails();  
     first = null;  second = null;  third = null;
     id = count;
     count++;
@@ -64,7 +70,8 @@ public class Node {
   }
 
   public String toString() {
-    return "#" + id + "[" + kind + "," + info + "]<" + nice(first) + " " + nice(second) + ">";
+    return "#" + id + "[" + kind + "," + info + "]<" + nice(first) + 
+              " " + nice(second) + ">";
   }
 
   public String nice( Node node ) {
@@ -88,8 +95,54 @@ public class Node {
     if( first != null ) {  children[k] = first; k++; }
     if( second != null ) {  children[k] = second; k++; }
     if( third != null ) {  children[k] = third; k++; }
-    return children;
+
+     return children;
   }
+
+  //******************************************************
+  // graphical display of this node and its subtree
+  // in given camera, with specified location (x,y) of this
+  // node, and specified distances horizontally and vertically
+  // to children
+  public void draw( Camera cam, double x, double y, double h, double v ) {
+
+System.out.println("draw node " + id );
+
+    // set drawing color
+    cam.setColor( Color.black );
+
+    String text = kind;
+    if( ! info.equals("") ) text += "(" + info + ")";
+    cam.drawHorizCenteredText( text, x, y );
+
+    // positioning of children depends on how many
+    // in a nice, uniform manner
+    Node[] children = getChildren();
+    int number = children.length;
+
+    double top = y - 0.75*v;
+
+    if( number == 0 ) {
+      return;
+    }
+    else if( number == 1 ) {
+      children[0].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
+    }
+    else if( number == 2 ) {
+      children[0].draw( cam, x-h/2, y-v, h/2, v );     cam.drawLine( x, y, x-h/2, top );
+      children[1].draw( cam, x+h/2, y-v, h/2, v );     cam.drawLine( x, y, x+h/2, top );
+    }
+    else if( number == 3 ) {
+      children[0].draw( cam, x-h, y-v, h/2, v );     cam.drawLine( x, y, x-h, top );
+      children[1].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
+      children[2].draw( cam, x+h, y-v, h/2, v );     cam.drawLine( x, y, x+h, top );
+    }
+    else {
+      System.out.println("no Node kind has more than 3 children???");
+      System.exit(1);
+    }
+
+  }// draw
 
   public static void error( String message ) {
     System.out.println( message );
@@ -104,7 +157,7 @@ public class Node {
   // (for nodes that don't return a value)
    public void execute() {
 
-      System.out.println("Executing node " + id + " of kind " + kind );
+//      System.out.println("Executing node " + id + " of kind " + kind );
 
       if ( kind.equals("program") ) {
          root = this;  // note the root node of entire tree
@@ -113,7 +166,7 @@ public class Node {
 
       else if ( kind.equals("stmts") ) {
          first.execute();
-         // returning is a flag saying that first
+         // returning is a flag saying that first 
          // wants to return, so don't do this node's second
          if ( second != null && !returning ) {
             second.execute();
@@ -122,11 +175,12 @@ public class Node {
 
       else if ( kind.equals("funcCall") ) {
          // execute a function call as a statement
-
+         
          String funcName = info;
 
          // handle bifs
          if ( funcName.equals("print") ) {
+
             // evaluate the single <expr>
             double value = first.first.evaluate();
             if ( (int) value == value )
@@ -137,9 +191,9 @@ public class Node {
          else if ( funcName.equals("nl") ) {
             System.out.println();
          }
-
+      
          else {// user-defined function
-
+       
             Node body = passArgs( this, funcName );
             body.second.execute();
 
@@ -148,14 +202,42 @@ public class Node {
          }// user-defined function
 
       }// funcCall
-
+      
       else if ( kind.equals("str") ) {
          System.out.print( info );
       }// str
-
+      
       else if ( kind.equals("sto") ) {
-         double value = first.evaluate();
-         table.store( info, value );
+
+/******************************************************************************
+ "sto" stores variables in the mem table and is where we need to access/store arrays.  
+   There are 3 different situations we need to account for when storing variables of an array
+           1) Creating an array...                              a = array(x)
+           2) Changing an array...                              a[x] = y
+           3) Setting a variable to a index inside an array...  m = a[x]
+********************************************************************************/
+         // 1) Creating an array... a = array(x)  
+            if ( first.kind.equals("array") ) { // Parser created a Node called "array"
+                  // get the size of the array
+                  double value = first.first.evaluate(); 
+
+                  // This method stores an array of size "value" and returns what index it stored that array at               
+                  int index = arrayOfArrays.storeArray( value ); // See CorgiArray.java for this custom method
+
+                  // index is the index of the array in the arrayOfArrays list
+                  // Example: a = array(x)
+                  // In this example we will pretend that arrayOfArrays = { a[x] , b[] , c[]}
+                  // if you want to grab a[x] then you would access it by saying a = arrayOfArray[0]
+                  // Therefore use table.store... info = a, index = 0
+                  table.store( info, index );    
+
+            }// END creating a new array
+
+
+            else{
+               double value = first.evaluate();
+               table.store( info, value );
+               }
       }// sto
 
       else if ( kind.equals("if") ) {
@@ -167,11 +249,40 @@ public class Node {
             third.execute();
          }
       }// if
+/*******************************************************************************************************
+ * DEREK: Added code in this segment
+ * Node is the type "for"
+ ********************************************************************************************************/
+      else if ( kind.equals("for") ) {
+
+         if ( first != null && second != null && third != null) {
+
+            double val1 = first.evaluate(); //start of iterator
+            double val2 = second.evaluate(); //end of iterator
+            
+            //convert double to int
+            int start = (int)val1; 
+            int end = (int)val2;
+
+            for(int i = start; i <= end; i++){
+               table.store( info, i);
+               third.execute(); // execute the third node
+            }
+         }
+
+         else {// notice program is over
+            System.out.println(".......error with for loop");
+            System.exit(0);
+         }   
+
+      }// for
+
+//******************************************************************************************************************************* */
+
 
       else if ( kind.equals("return") ) {
          returnValue = first.evaluate();
-         System.out.println("return value is set to " + returnValue );
-
+       //   System.out.println("return value is set to " + returnValue );    
          returning = true;
 
          // manage memtables
@@ -185,19 +296,20 @@ public class Node {
                System.out.println(".......execution halting");
                System.exit(0);
             }
-
+               
       }// return
 
       else {
-         error("Executing unknown kind of node [" + kind + "]");
+         error("Executing unknown kind of node [" + kind + "]");     
       }
 
    }// execute
-
+    
    // compute and return value produced by this node
    public double evaluate() {
 
-      System.out.println("Evaluating node " + id + " of kind " + kind );
+      //System.out.println("Evaluating node " + id + " of kind " + kind );        
+
 
       if ( kind.equals("var") ) {
          return table.retrieve( info );
@@ -224,11 +336,33 @@ public class Node {
          else
             return value1 / value2;
        }
-
+ 
        else if ( kind.equals("opp") ) {
           double value = first.evaluate();
           return -value;
        }
+
+
+//******************************************************************************************************************************************* */
+      // If you want to evaluate the content of an array
+      else if ( kind.equals("arrayGetter") ) { //See line 260, very simialr to storing contnet of an array
+
+      double localIndex = first.evaluate();  // this will be the index to reference from the local array
+      int localIndexInt = (int)localIndex;
+
+      String arrayName = info;
+      double arrayOfArraysIndex = table.retrieve( arrayName ); //get the index of the array we want access to.
+      int arraysIndex = (int)arrayOfArraysIndex;
+
+      double[] newArray = arrayOfArrays.get( arraysIndex );
+
+      double returnValue = newArray[localIndexInt];
+
+      return returnValue;
+
+   }
+//******************************************************************************************************************************************* */
+
 
        else if ( kind.equals("funcCall") ) {
           // execute a function call to produce a value
@@ -249,6 +383,7 @@ public class Node {
             }
          }
          else if ( member( funcName, bif1 ) ) {
+            
             double arg1 = first.first.evaluate();
 
             if ( funcName.equals("sqrt") )
@@ -274,19 +409,19 @@ public class Node {
             double arg1 = first.first.evaluate();
             double arg2 = first.second.first.evaluate();
 
-            if ( funcName.equals("lt") )
+            if ( funcName.equals("lt") ) 
                value = arg1 < arg2 ? 1 : 0;
-            else if ( funcName.equals("le") )
+            else if ( funcName.equals("le") ) 
                value = arg1 <= arg2 ? 1 : 0;
-            else if ( funcName.equals("eq") )
+            else if ( funcName.equals("eq") ) 
                value = arg1 == arg2 ? 1 : 0;
-            else if ( funcName.equals("ne") )
+            else if ( funcName.equals("ne") ) 
                value = arg1 != arg2 ? 1 : 0;
-            else if ( funcName.equals("pow") )
+            else if ( funcName.equals("pow") ) 
                value = Math.pow( arg1 , arg2 );
-            else if ( funcName.equals("and") )
+            else if ( funcName.equals("and") ) 
                value = arg1!=0 && arg2!=0 ? 1 : 0;
-            else if ( funcName.equals("or") )
+            else if ( funcName.equals("or") ) 
                value = arg1!=0 || arg2!=0 ? 1 : 0;
             else {
                error("unknown bif2 name [" + funcName + "]");
@@ -318,8 +453,11 @@ public class Node {
    }// evaluate
 
    private final static String[] bif0 = { "input", "nl" };
-   private final static String[] bif1 = { "sqrt", "cos", "sin", "atan", "round", "trunc", "not" };
-   private final static String[] bif2 = { "lt", "le", "eq", "ne", "pow", "or", "and" };
+   private final static String[] bif1 = { "sqrt", "cos", "sin", "atan", 
+                             "round", "trunc", "not" };
+   private final static String[] bif2 = { "lt", "le", "eq", "ne", "pow",
+                                          "or", "and"
+                                        };
 
    // return whether target is a member of array
    private static boolean member( String target, String[] array ) {
@@ -346,7 +484,8 @@ public class Node {
       while ( node != null && fdnode == null ) {
          if ( node.first.info.equals(funcName) ) {// found it
             fdnode = node.first;
-            System.out.println("located " + funcName + " at node " + fdnode.id );
+            // System.out.println("located " + funcName + " at node " + 
+            //                     fdnode.id );
          }
          else
            node = node.second;
@@ -378,16 +517,24 @@ public class Node {
             error("there are more arguments than parameters");
          }
 
-         System.out.println("at start of call to " + funcName + " memory table is:\n" + newTable );
+//         System.out.println("at start of call to " + funcName +
+//                           " memory table is:\n" + newTable );
 
          // manage the memtable stack
          memStack.add( newTable );
          table = newTable;
 
-         return fdnode;
+         return fdnode;  
 
       }// function name found
 
    }// passArguments
+
+
+
+// Put something here for the REPL to read something in
+// System.out.raed.......  then the input.  Then parse again.  and print out 
+
+
 
 }// Node

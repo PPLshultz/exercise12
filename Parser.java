@@ -1,5 +1,5 @@
 /*
-    This class provides a recursive descent parser
+    This class provides a recursive descent parser 
     for Corgi (the new version),
     creating a parse tree which can be interpreted
     to simulate execution of a Corgi program
@@ -81,7 +81,7 @@ public class Parser {
          Node first = parseParams();
          token = lex.getNextToken();
          errorCheck( token, "single", ")" );
-
+         
          token = lex.getNextToken();
 
          if ( token.isKind( "end" ) ) {// no statements
@@ -98,18 +98,18 @@ public class Parser {
       }// have params
 
    }// parseFuncDef
-
-
+   
+   
    private Node parseParams() {
       System.out.println("-----> parsing <params>:");
-
+   
       Token token = lex.getNextToken();
       errorCheck( token, "var" );
-
+ 
       Node first = new Node( "var", token.getDetails(), null, null, null );
 
       token = lex.getNextToken();
-
+      
       if ( token.matches( "single", ")" ) ) {// no more params
          lex.putBackToken( token );  // funcCall handles the )
          return new Node( "params", first, null, null );
@@ -128,16 +128,16 @@ public class Parser {
 
    private Node parseStatements() {
       System.out.println("-----> parsing <statements>:");
-
+ 
       Node first = parseStatement();
-
+ 
       // look ahead to see if there are more statement's
       Token token = lex.getNextToken();
-
+ 
       if ( token.isKind("eof") ) {
          return new Node( "stmts", first, null, null );
       }
-      else if ( token.isKind("end") ||
+      else if ( token.isKind("end") || 
                 token.isKind("else")
               ) {
          lex.putBackToken( token );
@@ -153,14 +153,15 @@ public class Parser {
    private Node parseFuncCall() {
       System.out.println("-----> parsing <funcCall>:");
 
-      Token name = lex.getNextToken(); // function name
-      errorCheck( name, "var" );
-
       Token token = lex.getNextToken();
-      errorCheck( token, "single", "(" );
+      errorCheck( token, "LPAREN" , "(");
+
+      Token name = lex.getNextToken(); // function name
+      errorCheck( name, "define" );
+
 
       token = lex.getNextToken();
-
+      
       if ( token.matches( "single", ")" ) ) {// no args
          return new Node( "funcCall", name.getDetails(), null, null, null );
       }
@@ -196,9 +197,9 @@ public class Parser {
 
    private Node parseStatement() {
       System.out.println("-----> parsing <statement>:");
-
+ 
       Token token = lex.getNextToken();
-
+ 
       // --------------->>>  <str>
       if ( token.isKind("string") ) {
          return new Node( "str", token.getDetails(),
@@ -208,7 +209,7 @@ public class Parser {
       else if ( token.isKind("var") ) {
          String varName = token.getDetails();
          token = lex.getNextToken();
-
+ 
          if ( token.matches("single","=") ) {// assignment
             Node first = parseExpr();
             return new Node( "sto", varName, first, null, null );
@@ -219,8 +220,32 @@ public class Parser {
             Node first = parseFuncCall();
             return first;
          }
+
+// once you hit a variable then you are now referencing an array
+         // If you are referencing an array
+         else if ( token.matches("single","[")) {// funcCall
+            
+            Node first = new Node( "arrayIndex" , null, null , null );
+
+            Node third = parseExpr(); // will be the array index to reference 
+            // Third will be a "double" will have to change it to an int in the node class
+            
+            token = lex.getNextToken(); // get the ]
+            errorCheck( token, "single", "]" ); 
+
+            token = lex.getNextToken(); // will be the "="
+            errorCheck( token, "single", "=" ); 
+
+            Node second = parseExpr(); // This will be a double.  
+            // the value will be to put into the array
+
+            // Create the new Node for storing a variable by refernecing an array
+            return new Node( "sto" , varName, first, second, third );
+         }         
+
+
          else {
-            System.out.println("<var> must be followed by = or (, "
+            System.out.println("<var> must be followed by = or (, [ "
                   + " not " + token );
             System.exit(1);
             return null;
@@ -231,7 +256,7 @@ public class Parser {
          Node first = parseExpr();
 
          token = lex.getNextToken();
-
+         
          if ( token.isKind( "else" ) ) {// no statements for true case
             token = lex.getNextToken();
             if ( token.isKind( "end" ) ) {// no statements for false case
@@ -242,7 +267,7 @@ public class Parser {
                Node third = parseStatements();
                token = lex.getNextToken();
                errorCheck( token, "end" );
-               return new Node( "if", first, null, third );
+               return new Node( "if", first, null, third );               
             }
          }
          else {// have statements for true case
@@ -253,7 +278,7 @@ public class Parser {
             errorCheck( token, "else" );
 
             token = lex.getNextToken();
-
+            
             if ( token.isKind( "end" ) ) {// no statements for false case
                return new Node( "if", first, second, null );
             }
@@ -266,7 +291,38 @@ public class Parser {
             }
          }
 
-      }// if ...
+      }// if ... 
+/******************************************************************************************* 
+ * DEREK: This is where the for loop will be read
+**********************************************************************************************/
+      // --------------->>>   for ...
+      else if ( token.isKind("for") ) {
+
+         // This is before it hit the var
+         token = lex.getNextToken();
+         errorCheck( token, "var" );
+         String varName = token.getDetails();
+
+         token = lex.getNextToken();  // this is the "=" sign
+         errorCheck( token, "single" , "=");
+
+         Node first = parseExpr(); // store the iterator number as a node
+
+         token = lex.getNextToken(); // this is the "to" of the loop
+         errorCheck( token, "var" ,"to");
+
+         Node second = parseExpr(); // store the max as a node
+         Node third = parseStatements(); // run the print statement and save as a node
+
+         token = lex.getNextToken();
+         errorCheck(token, "end", "");
+
+         return new Node( "for", varName, first, second, third); // return the for loop node
+
+      }// for ...
+/*******************************************************************************************
+ * DEREK: This is the end of the for loop to create a usable node
+ *******************************************************************************************/
 
       else if ( token.isKind( "return" ) ) {
          Node first = parseExpr();
@@ -274,12 +330,12 @@ public class Parser {
       }// return
 
       else {
-         System.out.println("Token " + token +
+         System.out.println("Token " + token + 
                              " can't begin a statement");
          System.exit(1);
          return null;
       }
-
+ 
    }// <statement>
 
    private Node parseExpr() {
@@ -289,9 +345,9 @@ public class Parser {
 
       // look ahead to see if there's an addop
       Token token = lex.getNextToken();
-
+ 
       if ( token.matches("single", "+") ||
-           token.matches("single", "-")
+           token.matches("single", "-") 
          ) {
          Node second = parseExpr();
          return new Node( token.getDetails(), first, second, null );
@@ -310,9 +366,9 @@ public class Parser {
 
       // look ahead to see if there's a multop
       Token token = lex.getNextToken();
-
+ 
       if ( token.matches("single", "*") ||
-           token.matches("single", "/")
+           token.matches("single", "/") 
          ) {
          Node second = parseTerm();
          return new Node( token.getDetails(), first, second, null );
@@ -321,7 +377,7 @@ public class Parser {
          lex.putBackToken( token );
          return first;
       }
-
+      
    }// <term>
 
    private Node parseFactor() {
@@ -332,29 +388,79 @@ public class Parser {
       if ( token.isKind("num") ) {
          return new Node("num", token.getDetails(), null, null, null );
       }
-      else if ( token.isKind("var") ) {
-         // could be simply a variable or could be a function call
+      else if ( token.isKind("NAME") ) {
+         // must be a vairable
          String name = token.getDetails();
 
          token = lex.getNextToken();
 
          if ( token.matches( "single", "(" ) ) {// is a funcCall
             lex.putBackToken( new Token( "single", "(") );  // put back the (
-            lex.putBackToken( new Token( "var", name ) );  // put back name
+            lex.putBackToken( new Token( "var", name ) );  // put back name 
             Node first = parseFuncCall();
             return first;
          }
+
+//************************************************************************************************************************************** */
+         // If the parse Expression is trying to get a value from an array
+         else if ( token.matches( "single", "[" ) ) {// is a array index
+
+            Node first = parseExpr();
+
+            token = lex.getNextToken(); // this is the ")"
+            errorCheck( token, "single" ,"]");
+
+            //put the name of the array in there it should be "a"
+            return new Node( "arrayGetter", name , first , null, null); // return the for loop node
+         }
+
+//*************************************************************************************************************************************** */
+
+
          else {// is just a <var>
             lex.putBackToken( token );  // put back the non-( token
             return new Node("var", name, null, null, null );
          }
       }
-      else if ( token.matches("single","(") ) {
+
+/*******************************************************************************************
+ * DEREK: This is the beginning if the next token is an  [array,]
+ *******************************************************************************************/
+
+      else if ( token.isKind("array") ) {
+
+         // This is before it hit the var
+         token = lex.getNextToken();
+         errorCheck( token, "single" , "(" );
+
+         Node first = parseExpr(); // store the number of how large the array will be
+
+         token = lex.getNextToken(); // this is the ")"
+         errorCheck( token, "single" ,")");
+
+         return new Node( "array", first, null, null); // return the for loop node
+
+      } // array 
+
+
+      else if ( token.matches("LPAREN","(") ) {
          Node first = parseExpr();
          token = lex.getNextToken();
          errorCheck( token, "single", ")" );
          return first;
       }
+/*******************************************************************************************
+ * DEREK: This is assignming a value to the array token [single, ] ] or [single, [ ]
+ *******************************************************************************************/
+      else if ( token.matches("single","[") ) {
+         Node first = parseExpr(); // get the content you want to put in the array
+         token = lex.getNextToken();  // the next token should end with "]"
+         errorCheck( token, "single", "]" ); // error check to make sure this is "]"
+         return first;
+      }
+/*******************************************************************************************
+ * DEREK: This is the end of parse expression when you want to set the value inside an array
+ *******************************************************************************************/
       else if ( token.matches("single","-") ) {
          Node first = parseFactor();
          return new Node("opp", first, null, null );
@@ -364,13 +470,13 @@ public class Parser {
          System.exit(1);
          return null;
       }
-
+      
    }// <factor>
 
   // check whether token is correct kind
   private void errorCheck( Token token, String kind ) {
     if( ! token.isKind( kind ) ) {
-      System.out.println("Error:  expected " + token +
+      System.out.println("Error:  expected " + token + 
                          " to be of kind " + kind );
       System.exit(1);
     }
@@ -378,10 +484,10 @@ public class Parser {
 
   // check whether token is correct kind and details
   private void errorCheck( Token token, String kind, String details ) {
-    if( ! token.isKind( kind ) ||
+    if( ! token.isKind( kind ) || 
         ! token.getDetails().equals( details ) ) {
-      System.out.println("Error:  expected " + token +
-                          " to be kind= " + kind +
+      System.out.println("Error:  expected " + token + 
+                          " to be kind= " + kind + 
                           " and details= " + details );
       System.exit(1);
     }
