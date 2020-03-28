@@ -118,10 +118,204 @@ public class Parser {
       errorCheck( token, "LPAREN" );
 
       token = lex.getNextToken();
-      if( token.matches("RPAREN", ")") ) {
+      if( token.matches("RPAREN", ")") ) { // This will be the end of the list
         errorCheck( token, "RPAREN" );
         return new Node( token );
       }
+
+//********************************************************************************************************************** */
+// START: Functions that take numeric inputs and produce a numeric result
+
+      else if( token.matches("NAME", "plus") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "plus" , first , second , null );
+
+         } // end if (plus)
+
+      else if( token.matches("NAME", "minus") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "minus" , first , second , null );
+
+         } // end if (minus)
+
+      else if( token.matches("NAME", "times") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "times" , first , second , null );
+
+         } // end if (times)
+
+      else if( token.matches("NAME", "div") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "div" , first , second , null );
+
+         } // end if (div)
+
+      else if( token.matches("NAME", "lt") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "lt" , first , second , null );
+
+         } // end if (lt)
+
+      else if( token.matches("NAME", "le") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "le" , first , second , null );
+
+         } // end if (le)
+
+      else if( token.matches("NAME", "eq") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "eq" , first , second , null );
+
+         } // end if (eq)
+
+      else if( token.matches("NAME", "ne") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "ne" , first , second , null );
+
+         } // end if (ne)
+
+      else if( token.matches("NAME", "and") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "and" , first , second , null );
+
+         } // end if (and)
+
+      else if( token.matches("NAME", "or") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "or" , first , second , null );
+
+         } // end if (or)
+
+      else if( token.matches("NAME", "not") ){
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "not" , first , null , null );
+
+         } // end if (not)
+//********************************************************************************************************************** */
+// END: Functions that take numeric inputs and produce a muneric result
+
+//********************************************************************************************************************** */
+// START: Functions that provide list manipulation abilities
+
+      else if( token.matches("NAME", "ins") ){
+
+         Node first = parseExpr();
+
+         Node second = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "ins" , first , second , null );
+
+         } // end if (ins)
+
+      else if( token.matches("NAME", "first") ){
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "first" , first , null , null );
+
+         } // end if (first)
+
+      else if( token.matches("NAME", "rest") ){
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "rest" , first , null , null );
+
+         } // end if (rest)
+//********************************************************************************************************************** */
+// END: Functions that provide list manipulation abilities
+
+
+//********************************************************************************************************************** */
+// START: Functions are known as predicates
+
+      else if( token.matches("NAME", "null") ){
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "null" , first , null , null );
+
+         } // end if (null)
+
+      else if( token.matches("NAME", "num") ){
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "num" , first , null , null );
+
+         } // end if (num)
+
+      else if( token.matches("NAME", "list") ){
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+
+         return new Node( "list" , first , null , null );
+
+         } // end if (list)
+//********************************************************************************************************************** */
+// END: Functions are known as predicates
+
+
+
       else { //else its a list with items
         lex.putBackToken( token );
         Node first = parseItems();
