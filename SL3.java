@@ -22,7 +22,7 @@ public class SL3 {
       Node root = parser.parseDefs();
 
       //display parse tree for debugging/testing
-      //TreeViewer viewer = new TreeViewer("Parse Tree", 0, 0, 1200, 800, root);
+      TreeViewer viewer = new TreeViewer("Parse Tree", 0, 0, 1200, 800, root);
 
       root.execute(); //execute the parse tree
 

@@ -91,6 +91,52 @@ public class Node {
     return children;
   }
 
+  //******************************************************
+  // graphical display of this node and its subtree
+  // in given camera, with specified location (x,y) of this
+  // node, and specified distances horizontally and vertically
+  // to children
+  public void draw( Camera cam, double x, double y, double h, double v ) {
+
+//System.out.println("draw node " + id );
+
+    // set drawing color
+    cam.setColor( Color.black );
+
+    String text = kind;
+    if( ! info.equals("") ) text += "(" + info + ")";
+    cam.drawHorizCenteredText( text, x, y );
+
+    // positioning of children depends on how many
+    // in a nice, uniform manner
+    Node[] children = getChildren();
+    int number = children.length;
+//System.out.println("has " + number + " children");
+
+    double top = y - 0.75*v;
+
+    if( number == 0 ) {
+      return;
+    }
+    else if( number == 1 ) {
+      children[0].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
+    }
+    else if( number == 2 ) {
+      children[0].draw( cam, x-h/2, y-v, h/2, v );     cam.drawLine( x, y, x-h/2, top );
+      children[1].draw( cam, x+h/2, y-v, h/2, v );     cam.drawLine( x, y, x+h/2, top );
+    }
+    else if( number == 3 ) {
+      children[0].draw( cam, x-h, y-v, h/2, v );     cam.drawLine( x, y, x-h, top );
+      children[1].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
+      children[2].draw( cam, x+h, y-v, h/2, v );     cam.drawLine( x, y, x+h, top );
+    }
+    else {
+      //System.out.println("no Node kind has more than 3 children???");
+      System.exit(1);
+    }
+
+  }// draw
+
   public static void error( String message ) {
     System.out.println( message );
     System.exit(1);
