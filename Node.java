@@ -272,6 +272,107 @@ public class Node {
          return table.retrieve( info );
       } //var
 
+/***************************************************************************
+START: predefined functions that take numeric inputs and produce a numeric result
+***************************************************************************/
+      else if( kind.equals("if") ) {
+         double value1 = first.evaluate();
+         double result;
+         double value3;
+         if( value1 != 0 ) {
+            result = second.evaluate();
+         }
+         else {
+            result = third.evaluate();
+         }
+         return result;
+      }
+      else if( kind.equals("plus") ) {
+         double value1 = first.evaluate();
+         double value2 = second.evaluate();
+         return value1 + value2;
+      }
+      else if( kind.equals("minus") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        return value1 - value2;
+      }
+      else if( kind.equals("times") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        return value1 * value2;
+      }
+      else if( kind.equals("div") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        return value1 / value2;
+      }
+      else if( kind.equals("lt") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 < value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("le") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 <= value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("eq") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 == value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("ne") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 != value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("and") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( (value1 != 0) && (value2 != 0) ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("or") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( (value1 != 0) || (value2 != 0) ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("not") ) {
+        double value1 = first.evaluate();
+        double result = 0;
+        if( value1 == 0 ) {
+          result = 1;
+        }
+        return result;
+      }
+/***************************************************************************
+END: predefined functions that take numeric inputs and produce a numeric result
+***************************************************************************/
+
       else if ( kind.equals("num") ) {
          return Double.parseDouble( info );
       }
