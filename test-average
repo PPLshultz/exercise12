@@ -1,5 +1,5 @@
 ( define ( ave x )
-   ( div ( sum x) (len x))
+   ( div (sum x) (len x))
 )
 
 (define (sum x)

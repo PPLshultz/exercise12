@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 public class Lexer {
 
-   public static String margin = "";
+   public static String margin = ""; //do we need this???
    private Stack<Token> stack;
    private BufferedReader input;
    private int lookahead;
@@ -160,25 +160,13 @@ public class Lexer {
             return new Token( "eof", data );
          }
          else if ( state == 7 ) {
-            // now anything starting with letter is either
-            // a NAME keyword or variable
-            if ( data.equals("define") || data.equals("if") ||
-                 data.equals("plus") || data.equals("minus") ||
-                 data.equals("times") || data.equals("div") ||
-                 data.equals("lt") || data.equals("le") ||
-                 data.equals("eq") || data.equals("ne") ||
-                 data.equals("and") || data.equals("or") ||
-                 data.equals("not") || data.equals("ins") ||
-                 data.equals("first") || data.equals("rest") ||
-                 data.equals("null") || data.equals("num") ||
-                 data.equals("list") || data.equals("read") ||
-                 data.equals("write") || data.equals("nl") ||
-                 data.equals("quote") || data.equals("quit")
-               ) {
-               return new Token( data, "" ); //NAME or "define" token
+            if ( data.equals("define") ) {
+               return new Token( data, "" ); //return a "define" token
             }
             else {
-               return new Token( "NAME", data ); // DEREK: changed this to NAME, it was "var" in Corgi
+
+               return new Token( "NAME", data ); //return a NAME token
+
             }
          }
          else { //Lexer error
@@ -195,7 +183,8 @@ public class Lexer {
    }
 
    public void putBackToken( Token token ) {
-     System.out.println( margin + "put back token " + token.toString() );
+     //System.out.println( margin + "put back token " + token.toString() );
+     System.out.println( "                <--- put back token " + token.toString() );
      stack.push( token );
    }
 
@@ -222,7 +211,7 @@ public class Lexer {
        System.out.println("Oops, already have a lookahead " + lookahead + " when trying to put back symbol " + sym );
        System.exit(1);
      }
-   }// putBackSymbol
+   } //putBackSymbol
 
    private boolean letter( int code ) {
       return 'a'<=code && code<='z' ||
@@ -232,10 +221,6 @@ public class Lexer {
    private boolean digit( int code ) {
      return '0'<=code && code<='9';
    }
-
-   // private boolean printable( int code ) {
-   //   return ' '<=code && code<='~';
-   // }
 
    private static void error( String message ) {
      System.out.println( message );
