@@ -91,6 +91,52 @@ public class Node {
     return children;
   }
 
+  //******************************************************
+  // graphical display of this node and its subtree
+  // in given camera, with specified location (x,y) of this
+  // node, and specified distances horizontally and vertically
+  // to children
+  public void draw( Camera cam, double x, double y, double h, double v ) {
+
+//System.out.println("draw node " + id );
+
+    // set drawing color
+    cam.setColor( Color.black );
+
+    String text = kind;
+    if( ! info.equals("") ) text += "(" + info + ")";
+    cam.drawHorizCenteredText( text, x, y );
+
+    // positioning of children depends on how many
+    // in a nice, uniform manner
+    Node[] children = getChildren();
+    int number = children.length;
+//System.out.println("has " + number + " children");
+
+    double top = y - 0.75*v;
+
+    if( number == 0 ) {
+      return;
+    }
+    else if( number == 1 ) {
+      children[0].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
+    }
+    else if( number == 2 ) {
+      children[0].draw( cam, x-h/2, y-v, h/2, v );     cam.drawLine( x, y, x-h/2, top );
+      children[1].draw( cam, x+h/2, y-v, h/2, v );     cam.drawLine( x, y, x+h/2, top );
+    }
+    else if( number == 3 ) {
+      children[0].draw( cam, x-h, y-v, h/2, v );     cam.drawLine( x, y, x-h, top );
+      children[1].draw( cam, x, y-v, h/2, v );     cam.drawLine( x, y, x, top );
+      children[2].draw( cam, x+h, y-v, h/2, v );     cam.drawLine( x, y, x+h, top );
+    }
+    else {
+      //System.out.println("no Node kind has more than 3 children???");
+      System.exit(1);
+    }
+
+  }// draw
+
   public static void error( String message ) {
     System.out.println( message );
     System.exit(1);
@@ -225,6 +271,107 @@ public class Node {
       if ( kind.equals("var") ) {
          return table.retrieve( info );
       } //var
+
+/***************************************************************************
+START: predefined functions that take numeric inputs and produce a numeric result
+***************************************************************************/
+      else if( kind.equals("if") ) {
+         double value1 = first.evaluate();
+         double result;
+         double value3;
+         if( value1 != 0 ) {
+            result = second.evaluate();
+         }
+         else {
+            result = third.evaluate();
+         }
+         return result;
+      }
+      else if( kind.equals("plus") ) {
+         double value1 = first.evaluate();
+         double value2 = second.evaluate();
+         return value1 + value2;
+      }
+      else if( kind.equals("minus") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        return value1 - value2;
+      }
+      else if( kind.equals("times") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        return value1 * value2;
+      }
+      else if( kind.equals("div") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        return value1 / value2;
+      }
+      else if( kind.equals("lt") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 < value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("le") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 <= value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("eq") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 == value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("ne") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( value1 != value2 ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("and") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( (value1 != 0) && (value2 != 0) ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("or") ) {
+        double value1 = first.evaluate();
+        double value2 = second.evaluate();
+        double result = 0;
+        if( (value1 != 0) || (value2 != 0) ) {
+          result = 1;
+        }
+        return result;
+      }
+      else if( kind.equals("not") ) {
+        double value1 = first.evaluate();
+        double result = 0;
+        if( value1 == 0 ) {
+          result = 1;
+        }
+        return result;
+      }
+/***************************************************************************
+END: predefined functions that take numeric inputs and produce a numeric result
+***************************************************************************/
 
       else if ( kind.equals("num") ) {
          return Double.parseDouble( info );
