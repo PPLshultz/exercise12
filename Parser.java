@@ -91,7 +91,7 @@ public class Parser {
       }
    } // parseParams()
 
-   private Node parseExpr() {
+   public Node parseExpr() {
       System.out.println("    parsing <expr>");
 
       Token token = lex.getNextToken();
@@ -112,9 +112,16 @@ public class Parser {
       System.out.println("      parsing <list>:");
 
       Token token = lex.getNextToken();
-      errorCheck(token, "LPAREN");
 
+      // It could possibly be a number coming in
+      if (token.isKind("NUMBER")) {
+         return new Node("NUMBER", token.getDetails(), null, null, null);
+      }
+
+      // We know it is a list
+      errorCheck(token, "LPAREN");
       token = lex.getNextToken();
+
       if (token.matches("RPAREN", ")")) { // This will be the end of the list
          errorCheck(token, "RPAREN");
          return new Node(token);
@@ -309,9 +316,25 @@ public class Parser {
          Node first = parseExpr();
          token = lex.getNextToken();
 
-         return new Node("list", first, null, null);
+         return new Node("list", "listCheck" , first, null, null);
 
-      } // end if (list)
+      }
+      else if (token.matches("NAME", "if")) {
+
+         Node first = parseList();
+         Node second = parseList();
+         Node third = parseList();
+         token = lex.getNextToken();
+
+         return new Node("if" , first , second , third);
+
+      }      
+      
+      
+      
+      
+      
+      // end if (list)
         // **********************************************************************************************************************
         // */
         // END: Functions are known as predicates

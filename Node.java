@@ -63,6 +63,26 @@ public class Node {
     System.out.println( this );
   }
 
+public Node insertNode( Node defNode , Node replNode){ 
+
+   Node first = defNode.first;
+   Node third = replNode.first;
+
+   if (defNode.second != null){
+      Node second = defNode.second;
+      return new Node( "root" , first , second, third );
+   }
+   
+   else {
+      return new Node( "root" , first , null, third );
+   }
+}
+
+
+
+
+
+
   public String toString() {
     return "                                                  = Node #" + id + "[" + kind + "," + info + "]<" + nice(first) + " " + nice(second) + ">";
   }
@@ -142,7 +162,22 @@ public class Node {
     System.exit(1);
   }
 
-   // ===============================================================
+
+
+   //Added this from the parser to return a Node
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  // ===============================================================
    //   execute/evaluate nodes
    // ===============================================================
 
@@ -151,6 +186,14 @@ public class Node {
    public void execute() {
 
       System.out.println("Executing node " + id + " of kind " + kind );
+
+      if (kind.equals("root")){
+         first.execute();
+         if(second != null){
+            second.execute();  
+         }
+         third.execute();
+      }
 
       //if ( kind.equals("program") ) {
       if ( kind.equals("defs") ) {
@@ -268,9 +311,255 @@ public class Node {
 
       System.out.println("Evaluating node " + id + " of kind " + kind );
 
-      if ( kind.equals("var") ) {
-         return table.retrieve( info );
-      } //var
+//#####################################################################################
+
+
+
+//##################################################################################
+
+      if ( kind.equals("list") ) {
+         
+         if( first.kind.equals("list") ) {
+            double value1 = first.first.evaluate();
+            if( first.info.equals("listCheck")){
+               if (first.first.kind.equals("list")){
+                  return 1; // The next kind is a list
+               }
+               return 0; // Not a list from the list check command  
+            }
+
+            if (first.second != null){
+            double value2 = first.second.evaluate();
+            return value1 + value2;
+            }
+            else{
+               return value1;
+            }
+
+
+
+         }        
+
+         if( first.kind.equals("plus") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            return value1 + value2;
+         }
+         else if( first.kind.equals("minus") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            return value1 - value2;
+          }
+          else if( first.kind.equals("times") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            return value1 * value2;
+          }
+          else if( first.kind.equals("div") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            return value1 / value2;
+          }
+          else if( first.kind.equals("lt") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            double result = 0;
+            if( value1 < value2 ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("le") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            double result = 0;
+            if( value1 <= value2 ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("eq") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            double result = 0;
+            if( value1 == value2 ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("ne") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            double result = 0;
+            if( value1 != value2 ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("and") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            double result = 0;
+            if( (value1 != 0) && (value2 != 0) ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("or") ) {
+            double value1 = first.first.evaluate();
+            double value2 = first.second.evaluate();
+            double result = 0;
+            if( (value1 != 0) || (value2 != 0) ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("not") ) {
+            double value1 = first.first.evaluate();
+            double result = 0;
+            if( value1 == 0 ) {
+              result = 1;
+            }
+            return result;
+          }
+          else if( first.kind.equals("null") ) {
+
+               double value = first.first.evaluate();
+               
+               if(first.first.kind.equals("list") && value == 1 ){
+                  return value;
+               }
+               else{ 
+                  return 0;
+               }
+
+          }
+
+          else if (first.kind.equals("RPAREN")){
+            double result = 1;
+            return result;
+         }
+
+         else if( first.kind.equals("num") ) {
+            
+            double value = first.first.evaluate();
+
+            if (first.first.kind.equals("NUMBER")){
+               return 1;
+            }
+            else{
+               return 0;
+            }
+         }
+         else if( first.kind.equals("list") ) {
+
+            if (first.first.kind.equals("list")){
+               return 1;
+            }
+            else{
+               return 0;
+            }
+
+         }
+         
+         else if( first.kind.equals("items") ) { 
+
+            if( first.first.first.info.equals("write")){
+               double value1 = first.first.second.first.evaluate();
+               return value1;
+            }
+            //Not sure what the QUOTE does Derek
+            // if( first.first.first.info.equals("quote")){
+            //    double value1 = first.first.second.first.evaluate();
+            //    return value1;
+            // }
+
+            double value1 = first.first.evaluate();
+            
+            return value1;
+            }
+
+            else if( first.kind.equals("if") ) { 
+               
+               double expr1 = first.first.evaluate();
+
+               if (expr1 != 0){
+                  double expr2 = first.second.evaluate();
+                  return expr2;
+               }
+               
+               double expr3 = first.third.evaluate();
+               return expr3;
+
+               }            
+
+
+
+
+
+         double deleteMe = 100000;
+         return deleteMe;
+      } //list
+
+
+      else if( kind.equals("items") ) { 
+
+         double value1 = first.evaluate();
+         
+         return value1;
+         }
+//#########################################################
+
+      else if( kind.equals("NAME") ) {
+
+         if (info.equals("read")){ //REPL command to read the next integerfrom the user
+         String userInputNumber = keys.nextLine();
+         double value1 = Double.parseDouble(userInputNumber);
+
+         return value1;
+         }
+
+         else if(info.equals("quit")){ //REPL command to quit
+            double value1 = 999999;
+   
+            return value1;
+            }
+
+         else if(info.equals("nl")){ //REPL command to quit
+            double value1 = 999998;
+   
+            return value1;
+            }
+//##############################################################################
+
+
+
+
+
+
+
+
+
+
+         double deleteMe = 100000;
+         return deleteMe;
+      }
+
+
+
+
+      else if ( kind.equals("NUMBER") ) {
+         return Double.parseDouble( info );
+      }
+
+
+
+
+
+
+
+
+
 
 /***************************************************************************
 START: predefined functions that take numeric inputs and produce a numeric result
@@ -292,90 +581,12 @@ START: predefined functions that take numeric inputs and produce a numeric resul
          double value2 = second.evaluate();
          return value1 + value2;
       }
-      else if( kind.equals("minus") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        return value1 - value2;
-      }
-      else if( kind.equals("times") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        return value1 * value2;
-      }
-      else if( kind.equals("div") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        return value1 / value2;
-      }
-      else if( kind.equals("lt") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        double result = 0;
-        if( value1 < value2 ) {
-          result = 1;
-        }
-        return result;
-      }
-      else if( kind.equals("le") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        double result = 0;
-        if( value1 <= value2 ) {
-          result = 1;
-        }
-        return result;
-      }
-      else if( kind.equals("eq") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        double result = 0;
-        if( value1 == value2 ) {
-          result = 1;
-        }
-        return result;
-      }
-      else if( kind.equals("ne") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        double result = 0;
-        if( value1 != value2 ) {
-          result = 1;
-        }
-        return result;
-      }
-      else if( kind.equals("and") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        double result = 0;
-        if( (value1 != 0) && (value2 != 0) ) {
-          result = 1;
-        }
-        return result;
-      }
-      else if( kind.equals("or") ) {
-        double value1 = first.evaluate();
-        double value2 = second.evaluate();
-        double result = 0;
-        if( (value1 != 0) || (value2 != 0) ) {
-          result = 1;
-        }
-        return result;
-      }
-      else if( kind.equals("not") ) {
-        double value1 = first.evaluate();
-        double result = 0;
-        if( value1 == 0 ) {
-          result = 1;
-        }
-        return result;
-      }
+
 /***************************************************************************
 END: predefined functions that take numeric inputs and produce a numeric result
 ***************************************************************************/
 
-      else if ( kind.equals("num") ) {
-         return Double.parseDouble( info );
-      }
+
 
       else if ( kind.equals("+") || kind.equals("-") ) {
          double value1 = first.evaluate();

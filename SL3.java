@@ -1,31 +1,100 @@
 import java.util.Scanner;
+import java.io.*;
 
 public class SL3 {
 
    public static void main(String[] args) throws Exception {
 
-      String name;
+      TreeViewer viewer;
+
+      Scanner keys = new Scanner( System.in );
+      String sourceName;
 
       if ( args.length == 1 ) {
-         name = args[0];
+         sourceName = args[0];
       }
       else {
          System.out.print("Enter name of SL3 program file: ");
-         Scanner keys = new Scanner( System.in );
-         name = keys.nextLine();
+         sourceName = keys.nextLine();
       }
 
-      Lexer lex = new Lexer( name );
+      Lexer lex = new Lexer( sourceName );
       Parser parser = new Parser( lex );
 
-      // start with <defs>
-      Node root = parser.parseDefs();
+      Node defsRoot = parser.parseDefs();
 
-      //display parse tree for debugging/testing
-      TreeViewer viewer = new TreeViewer("Parse Tree", 0, 0, 1300, 900, root);
+      // display parse tree for debugging/testing:
+/*
+      viewer = new TreeViewer("Parse Tree", 0, 0, 800, 500, 
+                                              defsRoot );
+      while ( 2 < Math.sqrt(9) ){}
+*/
 
-      root.execute(); //execute the parse tree
+      // REPL
 
-   } //main
+
+
+
+
+//I got rid of this.  I figure I can put defRoot into the third slot of the Node
+
+
+   //   Node.init( defsRoot );    // inform Node of the defs tree
+
+      if ( false ) {// view single expression tree
+         System.out.print("?  ");
+         String expression = keys.nextLine();
+         PrintWriter out = new PrintWriter( new File( "etemp" ) );
+         out.println( expression );
+         out.close();
+
+         lex = new Lexer( "etemp" );
+         parser = new Parser( lex );
+         Node exprRoot = parser.parseExpr();
+
+         if ( true ) {// see the tree
+      //     viewer = new TreeViewer("Parse Tree", 0, 0, 800, 500, 
+      //                                         exprRoot );
+         }
+         else {// evaluate it
+      //      Value value = exprRoot.evaluate();  // DEREK: change the evaluate method to be a linked list
+      //      System.out.println( value );
+         }
+
+       }
+       else {// do the full REPL with no tree viewing
+
+         // if the outputValue = 999999 then REPL will halt
+         double outputValue = 0;
+         while( 999999 != outputValue ) {
+
+            System.out.print("\n?  ");
+            String expression = keys.nextLine();
+            PrintWriter out = new PrintWriter( new File( "etemp" ) );
+            out.println( expression );
+            out.close();
+
+            lex = new Lexer( "etemp" );
+            parser = new Parser( lex );
+            Node exprRoot = parser.parseExpr();
+            Node comboRoot = defsRoot.insertNode( defsRoot , exprRoot);
+           // Value value = exprRoot.evaluate();
+           
+           //outputValue = exprRoot.evaluate();
+           //outputValue = comboRoot.evaluate();
+           comboRoot.execute();
+
+            if (outputValue == 999998 ){
+            System.out.println("");
+            }
+            else if (outputValue != 999999){
+               System.out.println("\n" + outputValue );
+            }
+
+         }
+
+      }// full REPL
+
+   }// main
 
 }

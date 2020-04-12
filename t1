@@ -1,0 +1,7 @@
+(define (sum x y)
+   (if (null x)
+       0
+       (plus x y)))
+
+
+
