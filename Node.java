@@ -364,11 +364,15 @@ public class Node {
       return value;
     }
 
-    else if( kind.equals("quote") ) { //todo figure quote out :|
-      Value value = new Value(info, "clearance"); //create a list of numbers
-      //Value value = new Value(info);
-      System.out.println("node -> quote -> value = " + value.toString());
-      System.out.println("value.listContents = " + value.listContents);
+    else if( kind.equals("quote") ) { //TODO: figure quote out :|
+      String[] listOfNumbers = info.split("\\s");
+      Value value = new Value(); //make new Value of type list
+      for(int i=listOfNumbers.length - 1; i>=0; i-- ) {
+        value.insert(new Value(listOfNumbers[i]));
+      }
+      System.out.println("Value as string = " + value.toString());
+      // Value value = new Value(info, "create a list"); //create a list of numbers
+      // System.out.println("value.listContents = " + value.listContents);
       return value;
     }
 
@@ -376,19 +380,13 @@ public class Node {
       //this else if block updates the variable values within def parse tree
       String functionName = info; //save function name
       int totalArgs = 1; //default 1, can be up to 2
-      // String paramValue1 = first.info; //name of parameter 1
-      // String paramValue2 = null; //name of parameter 2
       Value expr1 = first.evaluate(); //evaluate and save expression1
       Value expr2 = null;
-      //save expression1 value (remember value is Value)
       if( second != null ) { //evaluate and expression2 if available
-        //paramValue2 = second.info;
         expr2 = second.evaluate();
       }
-
       Node node = SL3.root;
       Node fdnode = null; //fdnode means function definition node
-      //while ( node != null && fdnode == null ) { //find user function in defs tree
       boolean isStillSearchingTree = true;
       String paramName1;
       String paramName2 = null;
@@ -396,11 +394,10 @@ public class Node {
         if ( node.first.info.equals(functionName) ) { // found it
           fdnode = node.first;
           paramName1 = fdnode.first.info;
-          //todo change functionality to store/find node id and change info
+          //NOTE: change functionality to store/find node id and change info
           //that way. current way overrides values and doesnt work for
           //multiple repl calls
           System.out.println("located " + functionName + " at node " + fdnode.id );
-          //go through each child node in list of fdnode and change variable
           node = fdnode.second.first; //change node to list node child node
           if(expr2 != null) { //update variable values
             paramName2 = fdnode.first.first.info;
@@ -415,21 +412,8 @@ public class Node {
           node = node.second;
         }
       }
-
-      //DEBUG: for test-simple, print new? value of "x"
-      //System.out.println("new? value of x = " + fdnode.second.first.second.info);
-
-      System.out.println();
-      System.out.println("    ---------------- foo -------------");
       System.out.println("fdnode.second.kind = " + fdnode.second.kind);
       Value result = fdnode.second.evaluate(); //evaluate list of define function
-      // Value value1 = first.evaluate();
-      // Value value2;
-      // if( second != null ) {
-      //   value2 = second.evaluate();
-      // }
-      // return new Value(sum);
-
       System.out.println();
       System.out.println("result = " + result.toString());
       System.out.println();
@@ -579,6 +563,7 @@ public class Node {
   ) {
     if(node != null) {
       System.out.println();
+      System.out.println("updateVariableValues(): ");
       System.out.println("node.kind = " + node.kind);
       System.out.println("node.info = " + node.info);
       System.out.println("name1 = " + name1);

@@ -25,7 +25,7 @@ public class Value {
 
   public double number;
   private LinkedList<Value> list; //list of values
-  public String listContents; //jose
+  public String listContents = null; //contents of NUMBER list, includes "()"
 
   public Value( double num ) {
     number = num;
@@ -37,8 +37,9 @@ public class Value {
     list = null;
   }
 
-  public Value(String thelist, String clearance) { //jose - list of numbers
-    if( clearance.equals("alist") ) {
+  public Value(String thelist, String clearance) { //jose - create a list of numbers
+    listContents = ""; //erase null to begin appending list contents
+    if( clearance.equals("create a list") ) {
       listContents = listContents + thelist;
     }
     else {
@@ -140,7 +141,7 @@ public class Value {
   }// rest
 
   // insert given value in the
-  // front of this value, which must
+  // front of this Value, which must
   // be a list
   public Value insert( Value a ) {
     if ( list==null ) {
@@ -150,9 +151,11 @@ public class Value {
     }
     else {// is a list
       // call copy constructor
-      Value temp = new Value( this );
-      temp.list.add( 0, a );
-      return temp;
+      // Value temp = new Value( this );
+      // temp.list.add( 0, a );
+      // return temp;
+      list.add(0, a);
+      return null;
     }
 
   }// insert

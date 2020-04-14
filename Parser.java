@@ -154,14 +154,13 @@ public class Parser {
         Node first = parseExpr();
         return new Node("null", first, null, null);
       }
-      else if( token.matches("NAME", "quote") ) { //TODO: figure quote out
-        Node first = parseExpr();
-        return new Node("quote", first, null, null);
-      }
-      else if( token.matches("NUMBER") ) { //possibly a list of numbers
+      else if( token.matches("NAME", "quote") ) {
+        token = lex.getNextToken(); //get starting "(" after "quote"
+        errorCheck(token, "LPAREN", "("); //check its "("
         int leftParenCount = 1; //starts at 1 to account for opening "("
         int rightParenCount = 0;
-        String theList = "(" + token.getDetails(); //include first NUMBER
+        //String theList = "("; //include first NUMBER
+        String theList = ""; //include first NUMBER
         while(leftParenCount > rightParenCount) {
           token = lex.getNextToken();
           if(token.matches("LPAREN", "(")) {
@@ -171,13 +170,36 @@ public class Parser {
             rightParenCount++;
           }
           else { //else its a NUMBER
-            theList = theList + " " + token.getDetails();
+            theList = theList + token.getDetails() + " ";
           }
         }
-        lex.putBackToken(token); //put back closing ")" for list parsing
-        theList = theList + ")";
+        //theList = theList + ")";
         return new Node("quote", theList, null, null, null);
       }
+      // else if( token.matches("NAME", "quote") ) {
+      //   Node first = parseExpr(); //parse as list of NUMBERs (see below else if)
+      //   return new Node("quote", first, null, null);
+      // }
+      // else if( token.matches("NUMBER") ) { //possibly a list of numbers
+      //   int leftParenCount = 1; //starts at 1 to account for opening "("
+      //   int rightParenCount = 0;
+      //   String theList = "(" + token.getDetails(); //include first NUMBER
+      //   while(leftParenCount > rightParenCount) {
+      //     token = lex.getNextToken();
+      //     if(token.matches("LPAREN", "(")) {
+      //       leftParenCount++;
+      //     }
+      //     else if(token.matches("RPAREN", ")")) {
+      //       rightParenCount++;
+      //     }
+      //     else { //else its a NUMBER
+      //       theList = theList + " " + token.getDetails();
+      //     }
+      //   }
+      //   lex.putBackToken(token); //put back closing ")" for list parsing
+      //   theList = theList + ")";
+      //   return new Node("quote", theList, null, null, null);
+      // }
       else if( token.isKind("NAME") ) { //user defined function
         System.out.println("!!!!!!!!!!! user function");
         String functionName = token.getDetails();

@@ -1,0 +1,3 @@
+(define (foo x)
+  (plus 3 (first x))
+)

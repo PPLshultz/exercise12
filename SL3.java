@@ -63,6 +63,7 @@ public class SL3 {
 
         lex = new Lexer("temp");
         Parser parser2 = new Parser(lex); //create parse tree for user input
+        Node expressionRoot = parser2.parseExpr(); //parse user input
 
         if(
           userInput.equalsIgnoreCase("(quit)") ||
@@ -71,9 +72,8 @@ public class SL3 {
         ) {
           System.exit(0); //exit program
         }
-        else { //evaluate code entered by user
-          Node expressionRoot = parser2.parseExpr(); //parse user input
-          result = expressionRoot.evaluate();
+        else { //evaluate code entered by user (need to for "quote")
+          result = expressionRoot.evaluate(); //evaluate the user input list
 
           //TreeViewer viewer = new TreeViewer("Parse Tree", 0, 0, 1300, 900, root);
           //parser.parseDefs(); //DEBUG: parse function define file again
