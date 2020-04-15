@@ -1,0 +1,7 @@
+(define (foo x y)
+  (plus (sum x y) 2)
+)
+
+(define (sum x y)
+  (first (ins x y))
+)

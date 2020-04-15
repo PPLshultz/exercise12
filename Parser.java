@@ -106,11 +106,27 @@ public class Parser {
         //return new Node(token);
         return null;
       }
+      else if( token.matches("NUMBER") ) { //else if a list of NUMBERs
+        String theList = token.getDetails(); //add first NUMBER to list
+        //while( token.matches("NUMBER") ) { //while token is a NUMBER
+        boolean isStillCreatingList = true;
+        while( isStillCreatingList ) { //while token is a NUMBER
+          token = lex.getNextToken();
+          if(token.matches("RPAREN", ")")) {
+            isStillCreatingList = false;
+            lex.putBackToken(token);
+          }
+          else {
+            theList = theList + " " + token.getDetails();
+          }
+        }
+        return new Node("listnumbers", theList, null, null, null);
+      }
       else if( token.matches("NAME", "if") ) {
         Node first = parseExpr();
         Node second = parseExpr();
         Node third = parseExpr();
-        return new Node("plus", first, second, third);
+        return new Node("if", first, second, third);
       }
       else if( token.matches("NAME", "plus") ) {
         Node first = parseExpr();
@@ -160,7 +176,7 @@ public class Parser {
         int leftParenCount = 1; //starts at 1 to account for opening "("
         int rightParenCount = 0;
         //String theList = "("; //include first NUMBER
-        String theList = ""; //include first NUMBER
+        String theList = "";
         while(leftParenCount > rightParenCount) {
           token = lex.getNextToken();
           if(token.matches("LPAREN", "(")) {
@@ -169,7 +185,7 @@ public class Parser {
           else if(token.matches("RPAREN", ")")) {
             rightParenCount++;
           }
-          else { //else its a NUMBER
+          else { //else its a NUMBER list
             theList = theList + token.getDetails() + " ";
           }
         }

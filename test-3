@@ -1,0 +1,7 @@
+(define (ave x)
+  (plus (sum x) 2)
+)
+
+(define (sum x)
+  (plus 4 4)
+)

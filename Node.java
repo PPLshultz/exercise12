@@ -275,13 +275,22 @@ public class Node {
     }
 
     else if( kind.equals("if") ) {
+      System.out.println("-----------------------------------");
+      System.out.println("if function");
+      System.out.println("-----------------------------------");
+      System.out.println("first = " + first.info);
+      System.out.println("second = " + second.info);
+      System.out.println("third = " + third.info);
       Value valueReturning;
       Value value1 = first.evaluate();
+      System.out.println("if -> value1 = " + value1);
       if( value1.number != 0 ) {
         valueReturning = second.evaluate();
+        System.out.println("if -> value2 = " + valueReturning);
       }
       else {
         valueReturning = third.evaluate();
+        System.out.println("if -> value3 = " + valueReturning);
       }
       return valueReturning;
     }
@@ -337,9 +346,12 @@ public class Node {
 
     else if( kind.equals("ins") ) {
       Value value1 = first.evaluate();
+      System.out.println("ins -> value1 = " + value1);
       Value value2 = second.evaluate();
-      Value value = value2.insert(value1); //TODO: Is this insert working?
-      return value;
+      System.out.println("ins -> value2 = " + value2);
+      value2.insert(value1);
+      System.out.println("ins -> value2 = " + value2);
+      return value2;
     }
 
     else if( kind.equals("first") ) {
@@ -349,31 +361,40 @@ public class Node {
 
     else if( kind.equals("rest") ) {
       Value value = first.evaluate();
+      System.out.println("rest -> value = " + value);
       return value.rest();
     }
 
     else if( kind.equals("null") ) {
       Value value = first.evaluate();
-      String temp = value.toString();
-      if( temp.equals("()") ) {
-        value = new Value(1);
-      }
-      else {
+      System.out.println("null -> value (pre) = " + value);
+      //String temp = value.toString();
+      // if( value == 1 ) {
+      //   value = new Value(1);
+      // }
+      if( value.number != 1 ) {
         value = new Value(0);
       }
+      System.out.println("null -> value (post) = " + value);
       return value;
     }
 
-    else if( kind.equals("quote") ) { //TODO: figure quote out :|
-      String[] listOfNumbers = info.split("\\s");
+    else if( kind.equals("quote") ) {
       Value value = new Value(); //make new Value of type list
-      for(int i=listOfNumbers.length - 1; i>=0; i-- ) {
-        value.insert(new Value(listOfNumbers[i]));
+      if( info.isEmpty() ) { //if quote is an empty list
+        System.out.println("quote is empty!!!");
+        return new Value(1);
       }
-      System.out.println("Value as string = " + value.toString());
-      // Value value = new Value(info, "create a list"); //create a list of numbers
-      // System.out.println("value.listContents = " + value.listContents);
-      return value;
+      else {
+        String[] listOfNumbers = info.split("\\s");
+        for(int i=listOfNumbers.length - 1; i>=0; i-- ) {
+          value.insert(new Value(listOfNumbers[i]));
+        }
+        System.out.println("Value as string = " + value.toString());
+        // Value value = new Value(info, "create a list"); //create a list of numbers
+        // System.out.println("value.listContents = " + value.listContents);
+        return value;
+      }
     }
 
     else if ( kind.equals("userfunction") ) { //do user defined func like (foo 2)

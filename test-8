@@ -1,0 +1,11 @@
+(define (foo x)
+  (funcA x)
+)
+
+(define (funcA x)
+  (funcB x)
+)
+
+(define (funcB x)
+  (plus 4 x)
+)

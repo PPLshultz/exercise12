@@ -1,3 +1,10 @@
 (define (foo x)
-  (quote (1 2 3 4))
+  (funcA x)
+)
+
+(define (funcA x)
+  (if (plus 0 0)
+    (plus 90 10)
+    (plus 190 10)
+  )
 )

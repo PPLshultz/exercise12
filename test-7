@@ -1,0 +1,3 @@
+(define (foo y)
+  (null y)
+)
