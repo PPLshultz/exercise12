@@ -74,22 +74,34 @@ public class SL3 {
             out.println( expression );
             out.close();
 
-            lex = new Lexer( "etemp" );
-            parser = new Parser( lex );
-            Node exprRoot = parser.parseExpr();
-            Node comboRoot = defsRoot.insertNode( defsRoot , exprRoot);
-           // Value value = exprRoot.evaluate();
-           
-           //outputValue = exprRoot.evaluate();
-           //outputValue = comboRoot.evaluate();
-           comboRoot.execute();
+            if (expression.equals("(nl)")){ //New line command
+               System.out.println("\n\n\n");
+            }
+            else if (expression.equals("(quit)")){ //New line command
+               System.out.println("Quitting...\n\n\n");
+               System.exit(1);
+            }
+            else{
+               lex = new Lexer( "etemp" );
+               parser = new Parser( lex );
+               Node exprRoot = parser.parseExpr();
+               
+               //This is good for see what will happen when only in the REPL node (third)
+  //             Value value = exprRoot.evaluate();
+               //This is only relative to the users input
+  //             String replOutput = value.toString();
+  //             System.out.println(replOutput);
 
-            if (outputValue == 999998 ){
-            System.out.println("");
-            }
-            else if (outputValue != 999999){
-               System.out.println("\n" + outputValue );
-            }
+
+               Node comboRoot = defsRoot.insertNode( defsRoot , exprRoot);
+               /////////////////////
+               Value finalOutputList = comboRoot.evaluate();
+
+               String finalOutput = finalOutputList.toString();
+               System.out.println(finalOutput);
+               ///////////////////////
+
+            } // New line command
 
          }
 

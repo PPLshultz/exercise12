@@ -329,10 +329,45 @@ public class Parser {
          return new Node("if" , first , second , third);
 
       }      
-      
-      
-      
-      
+      else if (token.matches("NAME", "write")) {
+
+         Node first = parseList();
+
+         token = lex.getNextToken();
+
+         return new Node("write" , first , null , null);
+
+      }    
+      else if (token.matches("NAME", "read")) {
+
+         token = lex.getNextToken();
+
+         return new Node("read" , null , null , null);
+
+      }         
+      else if (token.matches("NAME", "nl")) {
+
+         token = lex.getNextToken();
+
+         return new Node("nl" , null , null , null);
+
+      }      
+      else if (token.matches("NAME", "quote")) {
+
+         Node first = parseList();
+
+         token = lex.getNextToken();
+
+         return new Node("quote" , first , null , null);
+
+      }       
+      else if (token.matches("NAME", "quit")) {
+
+         token = lex.getNextToken();
+
+         return new Node("quit" , null , null , null);
+
+      }         
       
       // end if (list)
         // **********************************************************************************************************************

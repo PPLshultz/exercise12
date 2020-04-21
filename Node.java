@@ -20,6 +20,12 @@ public class Node {
   // references to children in the parse tree
   private Node first, second, third;
 
+//****************************************************************************************************************************** */
+//Create the array of arrays to store content for array implementation in Corgi
+ public static Value mother = new Value();
+//****************************************************************************************************************************** */
+  // create this so we vcan stroe a temporary list
+  private static Value returnList = new Value();
   // stack of memories for all pending calls
   private static ArrayList<MemTable> memStack = new ArrayList<MemTable>();
   // convenience reference to top MemTable on stack
@@ -183,8 +189,27 @@ public Node insertNode( Node defNode , Node replNode){
 
   // ask this node to execute itself
   // (for nodes that don't return a value)
-   public void execute() {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   public Value execute() {
+
+      Value deleteMe = new Value("0");
       System.out.println("Executing node " + id + " of kind " + kind );
 
       if (kind.equals("root")){
@@ -193,12 +218,14 @@ public Node insertNode( Node defNode , Node replNode){
             second.execute();  
          }
          third.execute();
+         return deleteMe;
       }
 
       //if ( kind.equals("program") ) {
       if ( kind.equals("defs") ) {
          root = this;  // note the root node of entire tree
          first.execute();
+         return deleteMe;
       }// program
 
       else if( kind.equals("def") ) {
@@ -206,108 +233,53 @@ public Node insertNode( Node defNode , Node replNode){
         if ( second != null ) {
           second.execute();
         }
+        return deleteMe;
       }
-
-      else if( kind.equals("NAME") ) {
-        System.out.println("NAME info = " + info);
-      }
-
-      else if( kind.equals("list") ) {
-        first.execute();
-      }
-
-      else if( kind.equals("items") ) {
-        first.execute();
-        if ( second != null ) {
-          second.execute();
-        }
-      }
-
-      else if ( kind.equals("stmts") ) {
-        first.execute();
-        // returning is a flag saying that first
-        // wants to return, so don't do this node's second
-        if ( second != null && !returning ) {
-          second.execute();
-        }
-      }// stmts
-
-      else if ( kind.equals("funcCall") ) {
-         // execute a function call as a statement
-
-         String funcName = info;
-
-         // handle bifs
-         if ( funcName.equals("print") ) {
-            // evaluate the single <expr>
-            double value = first.first.evaluate();
-            if ( (int) value == value )
-               System.out.print( (int) value );
-            else
-               System.out.print( value );
-         }
-         else if ( funcName.equals("nl") ) {
-            System.out.println();
-         }
-
-         else {// user-defined function
-
-            Node body = passArgs( this, funcName );
-            body.second.execute();
-
-            returning = false;
-
-         }// user-defined function
-
-      }// funcCall
-
-      else if ( kind.equals("str") ) {
-         System.out.print( info );
-      }// str
-
-      else if ( kind.equals("sto") ) {
-         double value = first.evaluate();
-         table.store( info, value );
-      }// sto
-
-      else if ( kind.equals("if") ) {
-         double question = first.evaluate();
-         if ( question != 0 ) {
-            second.execute();
-         }
-         else {
-            third.execute();
-         }
-      }// if
-
-      else if ( kind.equals("return") ) {
-         returnValue = first.evaluate();
-         System.out.println("return value is set to " + returnValue );
-
-         returning = true;
-
-         // manage memtables
-            // pop the top mem table
-            memStack.remove( memStack.size()-1 );
-
-            // convenience note new top (if any)
-            if ( memStack.size() > 0 )
-               table = memStack.get( memStack.size()-1 );
-            else {// notice program is over
-               System.out.println(".......execution halting");
-               System.exit(0);
-            }
-
-      }// return
 
       else {
          error("Executing unknown kind of node [" + kind + "]");
+         return deleteMe;
       }
 
    }// execute
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    // compute and return value produced by this node
-   public double evaluate() {
+   public Value evaluate() {
+
+      
 
       System.out.println("Evaluating node " + id + " of kind " + kind );
 
@@ -316,221 +288,659 @@ public Node insertNode( Node defNode , Node replNode){
 
 
 //##################################################################################
-
-      if ( kind.equals("list") ) {
-         
-         if( first.kind.equals("list") ) {
-            double value1 = first.first.evaluate();
-            if( first.info.equals("listCheck")){
-               if (first.first.kind.equals("list")){
-                  return 1; // The next kind is a list
-               }
-               return 0; // Not a list from the list check command  
+         if (kind.equals("root")){
+            Value firstNode = first.evaluate();
+            if(second != null){
+               Value secondNode = second.evaluate();  
             }
-
-            if (first.second != null){
-            double value2 = first.second.evaluate();
-            return value1 + value2;
-            }
-            else{
-               return value1;
-            }
-
-
-
-         }        
-
-         if( first.kind.equals("plus") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            return value1 + value2;
-         }
-         else if( first.kind.equals("minus") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            return value1 - value2;
-          }
-          else if( first.kind.equals("times") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            return value1 * value2;
-          }
-          else if( first.kind.equals("div") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            return value1 / value2;
-          }
-          else if( first.kind.equals("lt") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            double result = 0;
-            if( value1 < value2 ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("le") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            double result = 0;
-            if( value1 <= value2 ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("eq") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            double result = 0;
-            if( value1 == value2 ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("ne") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            double result = 0;
-            if( value1 != value2 ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("and") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            double result = 0;
-            if( (value1 != 0) && (value2 != 0) ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("or") ) {
-            double value1 = first.first.evaluate();
-            double value2 = first.second.evaluate();
-            double result = 0;
-            if( (value1 != 0) || (value2 != 0) ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("not") ) {
-            double value1 = first.first.evaluate();
-            double result = 0;
-            if( value1 == 0 ) {
-              result = 1;
-            }
-            return result;
-          }
-          else if( first.kind.equals("null") ) {
-
-               double value = first.first.evaluate();
-               
-               if(first.first.kind.equals("list") && value == 1 ){
-                  return value;
-               }
-               else{ 
-                  return 0;
-               }
-
-          }
-
-          else if (first.kind.equals("RPAREN")){
-            double result = 1;
-            return result;
+            Value thirdNode = third.evaluate();
+            return thirdNode;
          }
 
-         else if( first.kind.equals("num") ) {
+
+
+
+         else if ( kind.equals("RPAREN")){
+            Value emptyList = new Value(); //this is a temporary list for evaluations
+            return emptyList;
+         }
+
+
+         else if ( kind.equals("list") ) {
+
+            Value r = first.evaluate();
+
+            if( first.kind == "plus" || first.kind == "minus" ||
+                first.kind == "times" || first.kind == "div" ||
+                first.kind == "div" || first.kind == "lt" || 
+                first.kind == "le" || first.kind == "eq" ||
+                first.kind == "ne" || first.kind == "and" ||
+                first.kind == "or" || first.kind == "not"){
+
+                  return r;
+                }
+            //returnList = new Value(); //this is a temporary list for evaluations
+            returnList = new Value(); //reset the temp list
             
-            double value = first.first.evaluate();
 
-            if (first.first.kind.equals("NUMBER")){
-               return 1;
-            }
-            else{
-               return 0;
-            }
-         }
-         else if( first.kind.equals("list") ) {
+            return r;
+  
+         } // end list         
 
-            if (first.first.kind.equals("list")){
-               return 1;
-            }
-            else{
-               return 0;
-            }
-
-         }
          
-         else if( first.kind.equals("items") ) { 
+         else if( kind.equals("items") ){
 
-            if( first.first.first.info.equals("write")){
-               double value1 = first.first.second.first.evaluate();
-               return value1;
+            Value firstItem = first.evaluate();
+            returnList = returnList.insert(firstItem);
+               
+            if (second != null){
+
+                  second.evaluate();
+                  return returnList;
+                  } // end if "second node"
+   
+            else if (firstItem.getSize()  == 0  ||  firstItem.getSize() == 1){
+               return firstItem;
             }
-            //Not sure what the QUOTE does Derek
-            // if( first.first.first.info.equals("quote")){
-            //    double value1 = first.first.second.first.evaluate();
-            //    return value1;
+
+            else{
+            Value temp = new Value(); //temp list to rearrange values of the list to output correctly
+            int listSize = firstItem.getSize();   
+               for ( int i = 0; i <= listSize-1; ++i) {
+                  Value num = firstItem.getter(i);
+                  temp = temp.insert(num);
+                   } //end for "re-arrange"
+
+            return temp;
+                  }
+
+
+           } // end items
+
+
+
+           //number
+           else if ( kind.equals("NUMBER") ) {
+            Value r = new Value( info );
+            return r;
+            } // end number   
+  
+
+            else if( kind.equals("NAME") ) {
+               System.out.println("NAME = " + info);
+               //return new Value(info);
+               Value returnValue = new Value(info);
+               // return new Value(value);
+               return returnValue;
+             }
+
+
+
+
+         //REPL commands
+        
+         // read , wait for user input and display value
+         else if(kind.equals("read") ) {
+
+            String userInput = keys.nextLine();
+            Value output = new Value(userInput);
+            return output;
+
+         } // end read  
+
+
+
+
+//Test this one
+         // write , display x
+         else if( kind.equals("write") ) {
+
+            //it can be a number
+            if(first.kind.equals("NUMBER")){
+               Value number = first.evaluate();
+               return number;
+            }
+            //if its a list
+            Value output = first.evaluate();
+
+            return output;
+
+         } // end write
+      
+         else if( kind.equals("quote") ) {
+
+            //it can be a number
+            if(first.kind.equals("NUMBER")){
+               Value number = first.evaluate();
+               return number;
+            }
+            //if its a list
+            Value output = first.evaluate();
+            return output;
+
+         } // end write
+
+
+         // if
+         else if( kind.equals("if") ) { 
+            
+            Value expr1 = first.evaluate();
+            double val1 = expr1.getNumber();
+
+            if (val1 != 0){
+               Value expr2 = second.evaluate();
+               return expr2;
+            }
+            
+            Value expr3 = third.evaluate();
+            return expr3;
+
+            }  //end if
+
+
+
+         
+         // ins , insert the first object into the second objects list
+         else if( kind.equals("ins") ) {
+            
+            Value r = new Value();
+
+            Value thingToInsert = first.evaluate();
+            Value listToBeInserted = first.second.evaluate();
+
+            r = listToBeInserted.insert( thingToInsert );
+
+            return r;
+
+         } // end ins
+
+
+         // ins , insert the first object into the second objects list
+         else if( kind.equals("first") ) {
+            
+            Value listToGrabItem = first.evaluate();
+
+            if (listToGrabItem.getSize() == 0){
+               System.out.println("\nError: (first () )can not retrieve from an empty list");
+               System.exit(1);
+            }
+
+            Value firstItem = listToGrabItem.first();
+
+            return firstItem;
+
+         } // end ins
+
+         // rest , delete the first item from the list
+         else if( kind.equals("rest") ) {
+            
+            Value listToGrabItem = first.evaluate();
+
+            if (listToGrabItem.getSize() == 0){
+               System.out.println("\nError: (rest ()) can not delete from an empty list");
+               System.exit(1);
+            }
+
+            Value firstItem = listToGrabItem.rest();
+
+            return firstItem;
+
+         } // end rest
+
+         // null , 1 if empty list "()" ,0 if there is content 
+         else if( kind.equals("null") ) {
+            
+            Value listToGrabItem = first.evaluate();
+
+            if (listToGrabItem.isEmpty()){
+               Value r = new Value("1");
+               return r;
+            }
+
+            Value notNull = new Value("0");
+            return notNull;
+
+         } // end null
+
+         // num , 1 if a number , 0 if not a number
+         else if( kind.equals("num") ) {
+            
+            Value x = first.evaluate();
+             
+            if (x.isNumber()){
+               Value r = new Value("1");
+               return r;
+            }
+
+            Value notNumber = new Value("0");
+            return notNumber;
+
+         } // end num
+
+
+
+         //plus
+         else if( kind.equals("plus") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = val1 + val2;
+
+            Value r = new Value( result );
+
+            return r;
+         } // end plus
+      
+         // minus
+         else if( kind.equals("minus") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = val1 - val2;
+
+            Value r = new Value( result );
+
+            return r;
+          } // end minus
+
+          // times
+          else if( kind.equals("times") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = val1 * val2;
+
+            Value r = new Value( result );
+
+            return r;
+          }// end times
+
+          // divide
+          else if( kind.equals("div") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = val1 / val2;
+
+            Value r = new Value( result );
+
+            return r;
+          } // end divide
+
+          // less than
+          else if( kind.equals("lt") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( val1 < val2 ) {
+               result = 1;
+             }
+            Value r = new Value( result );     
+            
+            return r;
+          } // end less than
+         
+          // less than or equal
+          else if( kind.equals("le") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( val1 <= val2 ) {
+               result = 1;
+             }
+            Value r = new Value( result );   
+            
+            return r;
+          } // end less than or equal
+
+          // equal (num == num)
+          else if( kind.equals("eq") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( val1 == val2 ) {
+               result = 1;
+             }
+            Value r = new Value( result );    
+            
+            return r;
+          } // end equal
+
+          // not equal (num != num)
+          else if( kind.equals("ne") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( val1 != val2 ) {
+               result = 1;
+             }
+            Value r = new Value( result ); 
+            
+            return r;
+          } // end not equal
+
+          // AND ( boolean AND boolean), ("is a value" AND "is a value")
+          else if( kind.equals("and") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( (val1 != 0) && (val2 != 0) ) {
+              result = 1;
+            }
+            Value r = new Value( result ); 
+
+            return r;
+          } // end AND
+
+          // or ( boolean OR boolean), ("is a value" OR "is a value")
+          else if( kind.equals("or") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( (val1 != 0) || (val2 != 0) ) {
+              result = 1;
+            }
+            Value r = new Value( result ); 
+
+            return r;
+          } // end or
+
+          // not , return 1 if x is 0 else 1
+          else if( kind.equals("not") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            double result = 0;
+            if( val1 == 0 ) {
+              result = 1;
+            }
+            Value r = new Value( result ); 
+
+            return r;
+          } // end not
+
+
+
+          else if( kind.equals("ins") ) {
+
+            Value value1 = first.evaluate();
+            double val1 = value1.getNumber();
+
+            Value value2 = second.evaluate();
+            double val2 = value2.getNumber();
+
+            double result = 0;
+            if( (val1 != 0) || (val2 != 0) ) {
+              result = 1;
+            }
+            Value r = new Value( result ); 
+
+            return r;
+          } // end ins
+
+
+          else if ( kind.equals("def") ) { //do user defined func like (foo 2)
+            //this else if block updates the variable values within def parse tree
+            String functionName = info; //save function name
+            int totalArgs = 1; //default 1, can be up to 2
+            //Value expr1 = first.evaluate(); //evaluate and save expression1
+            String expr1 = first.info; //evaluate and save expression1
+            //Value expr2 = null;
+            String expr2 = "null";
+            // if( second != null ) { //evaluate and expression2 if available
+            //   expr2 = second.evaluate();
             // }
+            //Node node = SL3.root;
+            Node node = this;
 
-            double value1 = first.first.evaluate();
+            Node fdnode = null; //fdnode means function definition node
+            boolean isStillSearchingTree = true;
+            String paramName1;
+            String paramName2 = null;
+            while ( node != null && isStillSearchingTree ) { //find user function
+              if ( node.first.info.equals(functionName) ) { // found it
+                fdnode = node.first;
+                paramName1 = fdnode.first.info;
+                //NOTE: change functionality to store/find node id and change info
+                //that way. current way overrides values and doesnt work for
+                //multiple repl calls
+                System.out.println("located " + functionName + " at node " + fdnode.id );
+                node = fdnode.second.first; //change node to list node child node
+                if(expr2 != null) { //update variable values
+                  paramName2 = fdnode.first.first.info;
+                  updateVariableValues(node, paramName1, paramName2, expr1, expr2);
+                }
+                else {
+                  updateVariableValues(node, paramName1, null, expr1, null);
+                }
+                isStillSearchingTree = false;
+              }
+              else {
+               //node = node.second;
+                node = node.first;
+              }
+            }
+            System.out.println("fdnode.second.kind = " + fdnode.second.kind);
+            Value result = fdnode.second.evaluate(); //evaluate list of define function
+            System.out.println();
+            System.out.println("result = " + result.toString());
+            System.out.println();
+            return result;
+         }
+      
+
+
+
+      else{
+         Value r = new Value( "There is an error reading the Node, Nothing found" );
+         return r;
+      } // else 
+
+   } //end evaluate
+
+
+
+
+
+   private void updateVariableValues(Node node, String name1, String name2, String value1, String value2) {
+      if(node != null) {
+        System.out.println();
+        System.out.println("updateVariableValues(): ");
+        System.out.println("node.kind = " + node.kind);
+        System.out.println("node.info = " + node.info);
+        System.out.println("name1 = " + name1);
+        System.out.println("name2 = " + name2);
+        //System.out.println("new value = " + value.toString());
+        System.out.println("entry1 = " + value1.toString());
+        if(value2 != null) {
+          System.out.println("entry2 = " + value2.toString());
+        }
+        System.out.println();
+        if( value2 != null ) { //if there are two parameters
+          if( node.info.equals(name1) ) {
+            System.out.println("node.value: " + node.info + "  to  " + value1);
+            //node.value = value1.toString();
+            node.info = value1;
+
+          }
+          else if( node.info.equals(name2) ) {
+            //node.value = value2.toString();
+            node.info = value2;
+          }
+          updateVariableValues(node.first, name1, name2, value1, value2);
+          updateVariableValues(node.second, name1, name2, value1, value2);
+        }
+        else { //else there is only one parameter
+          if( node.info.equals(name1) ) {
+            //node.value = value1.toString();
+            node.info = value1;
+          }
+          updateVariableValues(node.first, name1, name2, value1, value2);
+          updateVariableValues(node.second, name1, name2, value1, value2);
+        }
+      }
+    }
+
+
+
+
+
+//           else if( first.kind.equals("null") ) {
+
+//                double value = first.first.evaluate();
+               
+//                if(first.first.kind.equals("list") && value == 1 ){
+//                   return value;
+//                }
+//                else{ 
+//                   return 0;
+//                }
+
+//           }
+
+//           else if (first.kind.equals("RPAREN")){
+//             double result = 1;
+//             return result;
+//          }
+
+//          else if( first.kind.equals("num") ) {
             
-            return value1;
-            }
+//             double value = first.first.evaluate();
 
-            else if( first.kind.equals("if") ) { 
-               
-               double expr1 = first.first.evaluate();
+//             if (first.first.kind.equals("NUMBER")){
+//                return 1;
+//             }
+//             else{
+//                return 0;
+//             }
+//          }
+//          else if( first.kind.equals("list") ) {
 
-               if (expr1 != 0){
-                  double expr2 = first.second.evaluate();
-                  return expr2;
-               }
-               
-               double expr3 = first.third.evaluate();
-               return expr3;
+//             if (first.first.kind.equals("list")){
+//                return 1;
+//             }
+//             else{
+//                return 0;
+//             }
 
-               }            
-
-
-
-
-
-         double deleteMe = 100000;
-         return deleteMe;
-      } //list
-
-
-      else if( kind.equals("items") ) { 
-
-         double value1 = first.evaluate();
+//          }
          
-         return value1;
-         }
-//#########################################################
+//          else if( first.kind.equals("items") ) { 
 
-      else if( kind.equals("NAME") ) {
+//             if( first.first.first.info.equals("write")){
+//                double value1 = first.first.second.first.evaluate();
+//                return value1;
+//             }
+//             //Not sure what the QUOTE does Derek
+//             // if( first.first.first.info.equals("quote")){
+//             //    double value1 = first.first.second.first.evaluate();
+//             //    return value1;
+//             // }
 
-         if (info.equals("read")){ //REPL command to read the next integerfrom the user
-         String userInputNumber = keys.nextLine();
-         double value1 = Double.parseDouble(userInputNumber);
+//             double value1 = first.first.evaluate();
+            
+//             return value1;
+//             }
 
-         return value1;
-         }
+//             else if( first.kind.equals("if") ) { 
+               
+//                double expr1 = first.first.evaluate();
 
-         else if(info.equals("quit")){ //REPL command to quit
-            double value1 = 999999;
+//                if (expr1 != 0){
+//                   double expr2 = first.second.evaluate();
+//                   return expr2;
+//                }
+               
+//                double expr3 = first.third.evaluate();
+//                return expr3;
+
+//                }            
+
+
+
+
+
+//          double deleteMe = 100000;
+//          return deleteMe;
+//       } //list
+
+
+//       else if( kind.equals("items") ) { 
+
+//          double value1 = first.evaluate();
+         
+//          return value1;
+//          }
+// //#########################################################
+
+//       else if( kind.equals("NAME") ) {
+
+//          if (info.equals("read")){ //REPL command to read the next integerfrom the user
+//          String userInputNumber = keys.nextLine();
+//          double value1 = Double.parseDouble(userInputNumber);
+
+//          return value1;
+//          }
+
+//          else if(info.equals("quit")){ //REPL command to quit
+//             double value1 = 999999;
    
-            return value1;
-            }
+//             return value1;
+//             }
 
-         else if(info.equals("nl")){ //REPL command to quit
-            double value1 = 999998;
+//          else if(info.equals("nl")){ //REPL command to quit
+//             double value1 = 999998;
    
-            return value1;
-            }
-//##############################################################################
+//             return value1;
+//             }
+// //##############################################################################
 
 
 
@@ -541,162 +951,162 @@ public Node insertNode( Node defNode , Node replNode){
 
 
 
-         double deleteMe = 100000;
-         return deleteMe;
-      }
+//          double deleteMe = 100000;
+//          return deleteMe;
+//       }
 
 
 
 
-      else if ( kind.equals("NUMBER") ) {
-         return Double.parseDouble( info );
-      }
-
-
-
-
-
+//       else if ( kind.equals("NUMBER") ) {
+//          return Double.parseDouble( info );
+//       }
 
 
 
 
 
-/***************************************************************************
-START: predefined functions that take numeric inputs and produce a numeric result
-***************************************************************************/
-      else if( kind.equals("if") ) {
-         double value1 = first.evaluate();
-         double result;
-         double value3;
-         if( value1 != 0 ) {
-            result = second.evaluate();
-         }
-         else {
-            result = third.evaluate();
-         }
-         return result;
-      }
-      else if( kind.equals("plus") ) {
-         double value1 = first.evaluate();
-         double value2 = second.evaluate();
-         return value1 + value2;
-      }
-
-/***************************************************************************
-END: predefined functions that take numeric inputs and produce a numeric result
-***************************************************************************/
 
 
 
-      else if ( kind.equals("+") || kind.equals("-") ) {
-         double value1 = first.evaluate();
-         double value2 = second.evaluate();
-         if ( kind.equals("+") )
-            return value1 + value2;
-         else
-            return value1 - value2;
-      }
 
-      else if ( kind.equals("*") || kind.equals("/") ) {
-         double value1 = first.evaluate();
-         double value2 = second.evaluate();
-         if ( kind.equals("*") )
-            return value1 * value2;
-         else
-            return value1 / value2;
-       }
 
-       else if ( kind.equals("opp") ) {
-          double value = first.evaluate();
-          return -value;
-       }
+// /***************************************************************************
+// START: predefined functions that take numeric inputs and produce a numeric result
+// ***************************************************************************/
+//       else if( kind.equals("if") ) {
+//          double value1 = first.evaluate();
+//          double result;
+//          double value3;
+//          if( value1 != 0 ) {
+//             result = second.evaluate();
+//          }
+//          else {
+//             result = third.evaluate();
+//          }
+//          return result;
+//       }
+//       else if( kind.equals("plus") ) {
+//          double value1 = first.evaluate();
+//          double value2 = second.evaluate();
+//          return value1 + value2;
+//       }
 
-       else if ( kind.equals("funcCall") ) {
-          // execute a function call to produce a value
+// /***************************************************************************
+// END: predefined functions that take numeric inputs and produce a numeric result
+// ***************************************************************************/
 
-         String funcName = info;
 
-         double value;  // have all function calls put their value here
-                        // to return once at the bottom
 
-         // handle bifs
+//       else if ( kind.equals("+") || kind.equals("-") ) {
+//          double value1 = first.evaluate();
+//          double value2 = second.evaluate();
+//          if ( kind.equals("+") )
+//             return value1 + value2;
+//          else
+//             return value1 - value2;
+//       }
 
-         if ( member( funcName, bif0 ) ) {
-            if ( funcName.equals("input") )
-               value =  keys.nextDouble();
-            else {
-               error("unknown bif0 name [" + funcName + "]");
-               value = -1;
-            }
-         }
-         else if ( member( funcName, bif1 ) ) {
-            double arg1 = first.first.evaluate();
+//       else if ( kind.equals("*") || kind.equals("/") ) {
+//          double value1 = first.evaluate();
+//          double value2 = second.evaluate();
+//          if ( kind.equals("*") )
+//             return value1 * value2;
+//          else
+//             return value1 / value2;
+//        }
 
-            if ( funcName.equals("sqrt") )
-               value = Math.sqrt( arg1 );
-            else if ( funcName.equals("cos") )
-               value = Math.cos( Math.toRadians( arg1 ) );
-            else if ( funcName.equals("sin") )
-               value = Math.sin( Math.toRadians( arg1 ) );
-            else if ( funcName.equals("atan") )
-               value = Math.toDegrees( Math.atan( arg1 ) );
-            else if ( funcName.equals("round") )
-               value = Math.round( arg1 );
-            else if ( funcName.equals("trunc") )
-               value = (int) arg1;
-            else if ( funcName.equals("not") )
-               value = arg1 == 0 ? 1 : 0;
-            else {
-               error("unknown bif1 name [" + funcName + "]");
-               value = -1;
-            }
-         }
-         else if ( member( funcName, bif2 ) ) {
-            double arg1 = first.first.evaluate();
-            double arg2 = first.second.first.evaluate();
+//        else if ( kind.equals("opp") ) {
+//           double value = first.evaluate();
+//           return -value;
+//        }
 
-            if ( funcName.equals("lt") )
-               value = arg1 < arg2 ? 1 : 0;
-            else if ( funcName.equals("le") )
-               value = arg1 <= arg2 ? 1 : 0;
-            else if ( funcName.equals("eq") )
-               value = arg1 == arg2 ? 1 : 0;
-            else if ( funcName.equals("ne") )
-               value = arg1 != arg2 ? 1 : 0;
-            else if ( funcName.equals("pow") )
-               value = Math.pow( arg1 , arg2 );
-            else if ( funcName.equals("and") )
-               value = arg1!=0 && arg2!=0 ? 1 : 0;
-            else if ( funcName.equals("or") )
-               value = arg1!=0 || arg2!=0 ? 1 : 0;
-            else {
-               error("unknown bif2 name [" + funcName + "]");
-               value = -1;
-            }
-         }
+//        else if ( kind.equals("funcCall") ) {
+//           // execute a function call to produce a value
 
-         else {// user-defined function
+//          String funcName = info;
 
-            Node body = passArgs( this, funcName );
-            body.second.execute();
+//          double value;  // have all function calls put their value here
+//                         // to return once at the bottom
 
-            value = returnValue;
+//          // handle bifs
 
-            returning = false;
+//          if ( member( funcName, bif0 ) ) {
+//             if ( funcName.equals("input") )
+//                value =  keys.nextDouble();
+//             else {
+//                error("unknown bif0 name [" + funcName + "]");
+//                value = -1;
+//             }
+//          }
+//          else if ( member( funcName, bif1 ) ) {
+//             double arg1 = first.first.evaluate();
 
-         }// user-defined function call
+//             if ( funcName.equals("sqrt") )
+//                value = Math.sqrt( arg1 );
+//             else if ( funcName.equals("cos") )
+//                value = Math.cos( Math.toRadians( arg1 ) );
+//             else if ( funcName.equals("sin") )
+//                value = Math.sin( Math.toRadians( arg1 ) );
+//             else if ( funcName.equals("atan") )
+//                value = Math.toDegrees( Math.atan( arg1 ) );
+//             else if ( funcName.equals("round") )
+//                value = Math.round( arg1 );
+//             else if ( funcName.equals("trunc") )
+//                value = (int) arg1;
+//             else if ( funcName.equals("not") )
+//                value = arg1 == 0 ? 1 : 0;
+//             else {
+//                error("unknown bif1 name [" + funcName + "]");
+//                value = -1;
+//             }
+//          }
+//          else if ( member( funcName, bif2 ) ) {
+//             double arg1 = first.first.evaluate();
+//             double arg2 = first.second.first.evaluate();
 
-         // uniformly finish
-         return value;
+//             if ( funcName.equals("lt") )
+//                value = arg1 < arg2 ? 1 : 0;
+//             else if ( funcName.equals("le") )
+//                value = arg1 <= arg2 ? 1 : 0;
+//             else if ( funcName.equals("eq") )
+//                value = arg1 == arg2 ? 1 : 0;
+//             else if ( funcName.equals("ne") )
+//                value = arg1 != arg2 ? 1 : 0;
+//             else if ( funcName.equals("pow") )
+//                value = Math.pow( arg1 , arg2 );
+//             else if ( funcName.equals("and") )
+//                value = arg1!=0 && arg2!=0 ? 1 : 0;
+//             else if ( funcName.equals("or") )
+//                value = arg1!=0 || arg2!=0 ? 1 : 0;
+//             else {
+//                error("unknown bif2 name [" + funcName + "]");
+//                value = -1;
+//             }
+//          }
 
-       }// funcCall
+//          else {// user-defined function
 
-       else {
-          error("Evaluating unknown kind of node [" + kind + "]" );
-          return -1;
-       }
+//             Node body = passArgs( this, funcName );
+//             body.second.execute();
 
-   }// evaluate
+//             value = returnValue;
+
+//             returning = false;
+
+//          }// user-defined function call
+
+//          // uniformly finish
+//          return value;
+
+//        }// funcCall
+
+//        else {
+//           error("Evaluating unknown kind of node [" + kind + "]" );
+//           return -1;
+//        }
+
+//    }// evaluate
 
    private final static String[] bif0 = { "input", "nl" };
    private final static String[] bif1 = { "sqrt", "cos", "sin", "atan", "round", "trunc", "not" };

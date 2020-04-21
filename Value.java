@@ -57,6 +57,7 @@ public class Value {
 
    // represent this value as a string
    public String toString() {
+
       if (list == null) {// is simply a number
          if ( number == (int) number ) {
             return "" + ((int) number);
@@ -94,7 +95,37 @@ public class Value {
          return new Value( list.get(0) );
       }
 
-   }// first
+   }// getter
+   public Value getter( int index ) {
+      if ( list==null ) {
+         System.out.println("Oops, this Value is a number");
+         System.exit(1);
+         return null;
+      }
+      else if ( list.size() == 0 ) {
+         System.out.println("Oops, this Value is an empty list");
+         System.exit(1);
+         return null;
+      }
+      else {// is a list and has a first element
+         // call copy constructor
+         return new Value( list.get(index) );
+      }
+
+   }// getter
+
+
+
+
+   //size
+   public int getSize(){
+      if ( list==null ) {
+         return 0;
+      }
+      return list.size();
+   } // size
+
+
 
    // return a new Value that is the
    // rest of this list
