@@ -41,28 +41,8 @@ public class SL3 {
 
    //   Node.init( defsRoot );    // inform Node of the defs tree
 
-      if ( false ) {// view single expression tree
-         System.out.print("?  ");
-         String expression = keys.nextLine();
-         PrintWriter out = new PrintWriter( new File( "etemp" ) );
-         out.println( expression );
-         out.close();
 
-         lex = new Lexer( "etemp" );
-         parser = new Parser( lex );
-         Node exprRoot = parser.parseExpr();
-
-         if ( true ) {// see the tree
-      //     viewer = new TreeViewer("Parse Tree", 0, 0, 800, 500, 
-      //                                         exprRoot );
-         }
-         else {// evaluate it
-      //      Value value = exprRoot.evaluate();  // DEREK: change the evaluate method to be a linked list
-      //      System.out.println( value );
-         }
-
-       }
-       else {// do the full REPL with no tree viewing
+      // do the full REPL with no tree viewing
 
          // if the outputValue = 999999 then REPL will halt
          double outputValue = 0;
@@ -87,24 +67,28 @@ public class SL3 {
                Node exprRoot = parser.parseExpr();
                
                //This is good for see what will happen when only in the REPL node (third)
-               Value value = exprRoot.evaluate();
+//               Value value = exprRoot.evaluate();
                //This is only relative to the users input
-               String replOutput = value.toString();
-               System.out.println(replOutput);
+//               String replOutput = value.toString();
+//               System.out.println(replOutput);
 
 
                //This is the combo node I created putting together the def node and REPL node,
                // Def node is 1 and 2 and REPL is node 3
-               Node comboRoot = defsRoot.insertNode( defsRoot , exprRoot);
+               //Node defsRoot = parser.parseDefs();
+
+               //Node comboRoot = defsRoot.insertNode( defsRoot , exprRoot);
+               Node comboRoot = defsRoot.insertNode( exprRoot );
+               comboRoot.init(comboRoot);
                /////////////////////
                //This is what I need to get to work
 
-     //          Value finalOutputList = comboRoot.evaluate();
-      //         String finalOutput = finalOutputList.toString();
-      //         System.out.println(finalOutput);
+               Value finalOutputList = comboRoot.evaluate();
+               String finalOutput = finalOutputList.toString();
+               System.out.println(finalOutput);
                ///////////////////////
 
-            } // New line command
+             // New line command
 
          }
 

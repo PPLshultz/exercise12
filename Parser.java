@@ -55,11 +55,13 @@ public class Parser {
          return new Node("def", varName, first, null, null);
       } else { // else its a <def> with parameters
          lex.putBackToken(token);
+         // this puts the parameter variables in node 1 of the tree
          Node first = parseParams();
 
          token = lex.getNextToken();
          errorCheck(token, "RPAREN");
 
+         // This parses the rest of the udf
          Node second = parseExpr();
 
          token = lex.getNextToken();
@@ -367,8 +369,34 @@ public class Parser {
 
          return new Node("quit" , null , null , null);
 
-      }         
-      
+      }
+      //It must be a user defined function NAME        
+      else if (token.isKind("NAME")) {
+         
+         String udf = token.getDetails();
+
+         Node first = parseExpr();
+         token = lex.getNextToken();
+         //there is only 1 variable in the User defined function
+         if (token.matches("RPAREN", ")")) { // This will be only one parameter
+            errorCheck(token, "RPAREN");
+            return new Node(udf , "udf1", first , null , null);
+         }
+         //There are two parameters to be made
+         else{
+            lex.putBackToken(token);
+            Node second = parseExpr();
+            return new Node(udf , "udf2" , first , second , null);
+         }
+         
+
+      } 
+
+
+
+
+
+
       // end if (list)
         // **********************************************************************************************************************
         // */

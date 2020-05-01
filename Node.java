@@ -19,26 +19,31 @@ public class Node {
 
   // references to children in the parse tree
   private Node first, second, third;
-
+  private static ValueTable valueTable = new ValueTable();
+  private static String currentUDF;
 //****************************************************************************************************************************** */
-//Create the array of arrays to store content for array implementation in Corgi
- public static Value mother = new Value();
+//Create the array to store user defined function trees 
+  private static udfTreeArray udfArray = new udfTreeArray();
 //****************************************************************************************************************************** */
   // create this so we vcan stroe a temporary list
   private static Value returnList = new Value();
   // stack of memories for all pending calls
-  private static ArrayList<MemTable> memStack = new ArrayList<MemTable>();
+//  private static ArrayList<MemTable> memStack = new ArrayList<MemTable>();
   // convenience reference to top MemTable on stack
-  private static MemTable table = new MemTable();
+//  private static MemTable table = new MemTable();
 
   // status flag that causes <stmts> nodes to abort asking second
   // to execute
-  private static boolean returning = false;
+//  private static boolean returning = false;
 
   // value being returned
-  private static double returnValue = 0;
+//  private static double returnValue = 0;
 
   private static Node root;  // root of the entire parse tree
+
+  public static Node udfNodeToChange;
+
+  public static Node master;
 
   private static Scanner keys = new Scanner( System.in );
 
@@ -69,21 +74,31 @@ public class Node {
     System.out.println( this );
   }
 
-public Node insertNode( Node defNode , Node replNode){ 
+// public Node insertNode( Node defNode , Node replNode){ 
 
-   Node first = defNode.first;
+//    Node first = defNode.first;
+//    Node third = replNode.first;
+
+//    if (defNode.second != null){
+//       Node second = defNode.second;
+//       return new Node( "root" , first , second, third );
+//    }
+   
+//    else {
+//       return new Node( "root" , first , null, third );
+//    }
+// }
+public Node insertNode( Node replNode){ 
+
    Node third = replNode.first;
 
-   if (defNode.second != null){
-      Node second = defNode.second;
+   if (second != null){
       return new Node( "root" , first , second, third );
    }
-   
    else {
       return new Node( "root" , first , null, third );
    }
 }
-
 
 
 
@@ -207,43 +222,41 @@ public Node insertNode( Node defNode , Node replNode){
 
 
 
-   public Value execute() {
+   // public Value execute() {
 
-      Value deleteMe = new Value("0");
-      System.out.println("Executing node " + id + " of kind " + kind );
+   //    Value deleteMe = new Value("0");
+   //    System.out.println("Executing node " + id + " of kind " + kind );
 
-      if (kind.equals("root")){
-         first.execute();
-         if(second != null){
-            second.execute();  
-         }
-         third.execute();
-         return deleteMe;
-      }
+   //    if (kind.equals("root")){
+   //       first.execute();
+   //       if(second != null){
+   //          second.execute();  
+   //       }
+   //       third.execute();
+   //       return deleteMe;
+   //    }
 
-      //if ( kind.equals("program") ) {
-      if ( kind.equals("defs") ) {
-         root = this;  // note the root node of entire tree
-         first.execute();
-         return deleteMe;
-      }// program
+   //    //if ( kind.equals("program") ) {
+   //    if ( kind.equals("defs") ) {
+   //       root = this;  // note the root node of entire tree
+   //       first.execute();
+   //       return deleteMe;
+   //    }// program
 
-      else if( kind.equals("def") ) {
-        first.execute();
-        if ( second != null ) {
-          second.execute();
-        }
-        return deleteMe;
-      }
+   //    else if( kind.equals("def") ) {
+   //      first.execute();
+   //      if ( second != null ) {
+   //        second.execute();
+   //      }
+   //      return deleteMe;
+   //    }
 
-      else {
-         error("Executing unknown kind of node [" + kind + "]");
-         return deleteMe;
-      }
+   //    else {
+   //       error("Executing unknown kind of node [" + kind + "]");
+   //       return deleteMe;
+   //    }
 
-   }// execute
-
-
+   // }// execute
 
 
 
@@ -269,6 +282,10 @@ public Node insertNode( Node defNode , Node replNode){
 
 
 
+
+ public void init( Node rootNode){
+   master = rootNode;
+ }
 
 
 
@@ -279,7 +296,6 @@ public Node insertNode( Node defNode , Node replNode){
    // compute and return value produced by this node
    public Value evaluate() {
 
-      
 
       System.out.println("Evaluating node " + id + " of kind " + kind );
 
@@ -289,10 +305,31 @@ public Node insertNode( Node defNode , Node replNode){
 
 //##################################################################################
          if (kind.equals("root")){
-            Value firstNode = first.evaluate();
-            if(second != null){
-               Value secondNode = second.evaluate();  
+
+            //build the user defined table
+            //Value firstNode = first.evaluate();
+         //Check to see if this is the first iteration of REPL,  dont build th eudf array list if it is  
+         
+         //Wipe all the static lists
+         returnList = new Value();
+         udfArray = new udfTreeArray();
+         valueTable = new ValueTable();
+
+         int numOfUDF = udfArray.getSize();
+            if (numOfUDF == 0){
+               first.udfBuilder();
+               
+               
+         //     Node firstUDF = udfArray.getUdf(0);
+               //If there is a second user defined function... then build the table
+            if( second != null ){
+               //Value secondNode = second.evaluate();  
+               second.udfBuilder();
+         //        Node secondUDF = udfArray.getUdf(1);
+         //        Node thirdUDF = udfArray.getUdf(2);
+         //        Node fourthUDF = udfArray.getUdf(3);
             }
+         }
             Value thirdNode = third.evaluate();
             return thirdNode;
          }
@@ -315,7 +352,10 @@ public Node insertNode( Node defNode , Node replNode){
                 first.kind == "div" || first.kind == "lt" || 
                 first.kind == "le" || first.kind == "eq" ||
                 first.kind == "ne" || first.kind == "and" ||
-                first.kind == "or" || first.kind == "not"){
+                first.kind == "or" || first.kind == "not" ||
+                first.kind == "quote" || first.kind == "rest" ||
+                first.kind == "udf1"  || first.kind == "udf2" ||
+                first.kind == "list"){ //remove list to fix
 
                   return r;
                 }
@@ -369,6 +409,25 @@ public Node insertNode( Node defNode , Node replNode){
             else if( kind.equals("NAME") ) {
                System.out.println("NAME = " + info);
                //return new Value(info);
+
+               //find the value in the ValueTable
+               boolean searchTable = true;
+               int iterator = 0;
+               while(searchTable){
+               
+                     Value searcherValue = valueTable.getArgumentValue(iterator);
+                     String arg = searcherValue.getArg();
+                     String meth = searcherValue.getMeth();
+                     System.out.println("NAME = " + arg);
+                     System.out.println("NAME = " + meth);
+                     //if (info.equals( arg ) && currentUDF.equals(meth)){
+                        if (info.equals( arg )){   
+                        Value argVal = searcherValue.getValue();
+                        return argVal;
+                     }
+                     iterator = iterator + 1;
+               }
+
                Value returnValue = new Value(info);
                // return new Value(value);
                return returnValue;
@@ -726,107 +785,318 @@ public Node insertNode( Node defNode , Node replNode){
           } // end ins
 
 
-          else if ( kind.equals("def") ) { //do user defined func like (foo 2)
-            //this else if block updates the variable values within def parse tree
-            String functionName = info; //save function name
-            int totalArgs = 1; //default 1, can be up to 2
-            //Value expr1 = first.evaluate(); //evaluate and save expression1
-            String expr1 = first.info; //evaluate and save expression1
-            //Value expr2 = null;
-            String expr2 = "null";
-            // if( second != null ) { //evaluate and expression2 if available
-            //   expr2 = second.evaluate();
-            // }
-            //Node node = SL3.root;
-            Node node = this;
+          // if it is a user defined function one parameter
+          else if (info.equals("udf1") ){
+            //read the udf off of the table and then run the node at that location
+            //you also need to pass the parameters for the udf 
+            Value r = new Value( 5 ); //Please kill me
+            
+            int amountOfUDF = udfArray.getSize();
+            String searchKey = kind;
+            Boolean keepSearching = true;
+            int index = 0;
+/////////////////////////////////////////////////////////////
+            //currentUDF = searchKey;
+        //    Node udfSelect = udfArray.getUdf(index);
+        //    String x = udfSearcher.first.info;
+        //    Value argEvaluatedX = first.evaluate();
+            //Value tableStoreX = new Value( x , searchKey , argEvaluatedX);
+            
+           // boolean argExistsX = valueTable.isin( x , searchKey );
+            
+            //update the table
+        //    if (argExistsX && currentUDF.equals(searchKey)){
+               //remove the arg from the list
+        //       valueTable.removeArg( x );
+        //    }
+           // valueTable.storeValue( tableStoreX ) ;
 
-            Node fdnode = null; //fdnode means function definition node
-            boolean isStillSearchingTree = true;
-            String paramName1;
-            String paramName2 = null;
-            while ( node != null && isStillSearchingTree ) { //find user function
-              if ( node.first.info.equals(functionName) ) { // found it
-                fdnode = node.first;
-                paramName1 = fdnode.first.info;
-                //NOTE: change functionality to store/find node id and change info
-                //that way. current way overrides values and doesnt work for
-                //multiple repl calls
-                System.out.println("located " + functionName + " at node " + fdnode.id );
-                node = fdnode.second.first; //change node to list node child node
-                if(expr2 != null) { //update variable values
-                  paramName2 = fdnode.first.first.info;
-                  updateVariableValues(node, paramName1, paramName2, expr1, expr2);
-                }
-                else {
-                  updateVariableValues(node, paramName1, null, expr1, null);
-                }
-                isStillSearchingTree = false;
-              }
-              else {
-               //node = node.second;
-                node = node.first;
-              }
-            }
-            System.out.println("fdnode.second.kind = " + fdnode.second.kind);
-            Value result = fdnode.second.evaluate(); //evaluate list of define function
-            System.out.println();
-            System.out.println("result = " + result.toString());
-            System.out.println();
-            return result;
-         }
+////////////////////////////////////////////////////////////////////
+            while( keepSearching ){
+               Node udfSearcher = udfArray.getUdf(index);
+
+               //If you find the udf Node in the array list "udfSearcher"
+               if (udfSearcher.info.equals(searchKey)){
+
+                  // There is only 1 argument
+////////////////////////////////////////////////////////////
+                  String x = udfSearcher.first.info;
+                  currentUDF = searchKey;
+                  Value argEvaluatedX = first.evaluate();
+                  Value tableStoreX = new Value( x , searchKey ,argEvaluatedX);
+                  
+                  boolean argExistsX = valueTable.isin( x , searchKey );
+                  
+                  //update the table
+                  if (argExistsX && currentUDF.equals(searchKey)){
+                     //remove the arg from the list
+                     valueTable.removeArg( x );
+                  }
+                  valueTable.storeValue( tableStoreX ) ;
+///////////////////////////////////////////////////////////
+                  //Lets try to take the kind.equals(name) approach, this other way isnt working
+                  Value udfEvaluated = udfSearcher.second.evaluate();
+
+                  return udfEvaluated;
+                  //keepSearching = false;
+               }
+               // If you searched through all the UDF and didnt find a match
+               else if (amountOfUDF == index){
+                  System.out.print("The UDF function was not found");
+                  keepSearching = false;
+               }
+
+               index = index + 1;
+            } // end while (udf searcher)
+
+            return r;
+          }
+
+
+
+
+
+
+          // if it is a user defined function two parameter
+          else if (info.equals("udf2") ){
+            //read the udf off of the table and then run the node at that location
+            //you also need to pass the parameters for the udf 
+            Value r = new Value( 5 ); //Please kill me
+            
+            int amountOfUDF = udfArray.getSize();
+            String searchKey = kind;
+            Boolean keepSearching = true;
+            int index = 0;
+
+            while( keepSearching ){
+               Node udfSearcher = udfArray.getUdf(index);
+
+               //If you find the udf Node in the array list "udfSearcher"
+               if (udfSearcher.info.equals(searchKey)){
+
+                  if(udfSearcher.first.first != null){
+                     //get the first variable argument
+                     String x = udfSearcher.first.info;
+                     String y = udfSearcher.first.first.info;
+                     Value argEvaluatedX = first.evaluate();
+                     Value argEvaluatedY = second.evaluate();
+
+                     Value tableStoreX = new Value( x , searchKey, argEvaluatedX);
+                     Value tableStoreY = new Value( y , searchKey, argEvaluatedY);
+
+                     boolean argExistsX = valueTable.isin( x , searchKey);
+                     boolean argExistsY = valueTable.isin( y , searchKey);
+                     if (argExistsX){
+                        //remove the arg from the list
+                        valueTable.removeArg( x );
+                     }
+                     valueTable.storeValue( tableStoreX ) ;
+                     //get the second variable argument
+                     if (argExistsY){
+                        //remove the arg from the list
+                        valueTable.removeArg( y );
+                     }
+                     valueTable.storeValue( tableStoreY ) ;
+                     } // end if second argument
+                  
+                  // There is only 1 argument
+                  else{
+                     String x = udfSearcher.first.info;
+                     Value argEvaluatedX = first.evaluate();
+                     Value tableStoreX = new Value( x , searchKey, argEvaluatedX);
+                     boolean argExistsX = valueTable.isin( x , searchKey);
+                     
+                     //update the table
+                     if (argExistsX){
+                        //remove the arg from the list
+                        valueTable.removeArg( x );
+                     }
+                     valueTable.storeValue( tableStoreX ) ;
+                  }
+
+                  //Lets try to take the kind.equals(name) approach, this other way isnt working
+                  Value udfEvaluated = udfSearcher.second.evaluate();
+
+                  return udfEvaluated;
+                  //keepSearching = false;
+               }
+               // If you searched through all the UDF and didnt find a match
+               else if (amountOfUDF == index){
+                  System.out.print("The UDF function was not found");
+                  keepSearching = false;
+               }
+
+               index = index + 1;
+            } // end while (udf searcher)
+
+            return r;
+
+          }
+
+
+
+
+
+
+
+
+          else{
+            System.out.println("If you got here something went terribly wrong");
+            Value r = new Value( "placeholder" ); 
+
+            return r;
+          }
+
+      } //end evaluate
+
+
+
+      public void udfBuilder(){
+         //THe only job of this is to record where shit is in the master tree and save 
+         // it to a single argument table or to a two argument table
+         if ( kind.equals("def") ) { //do user defined func like (foo 2)
+           //this else if block updates the variable values within def parse tree
+           udfArray.storeUdf(this);
+        }
+        else if( kind.equals("defs") ){
+           udfArray.storeUdf(first);
+           if (second != null){
+              second.udfBuilder();
+           }
+        }
+        else{
+           System.out.println("error creating node array list");
+        }
+     } //end udf builder
+
+
+
+
+     // Create a method to go through the tree and insert a argument node with the same "info"
+   //   public Node nodeInserter(Node udfNode , Node argumentNode , String arg){
+
+   //    //udfNodeToChange
+   //    Node tempNode = udfNode;
+
+   //    // if (udfNode == null)  {
+   //    //    return;
+   //    // }
+   //    // if(udfNode.info.equals( arg )){
+   //    //    udfNode = argumentNode;
+   //    // }
+   //    // nodeInserter(udfNode.first , argumentNode , arg);
+   //    // nodeInserter(udfNode.second , argumentNode , arg); 
+   //    // nodeInserter(udfNode.third , argumentNode , arg);
+
+
+   //    {  
+          
+   //        if (udfNode.first == null && udfNode.second == null && udfNode.third == null)  {
+   //          System.out.print(udfNode.info+" \n"); 
+   //          if(udfNode.info.equals( arg )){
+   //             System.out.print(udfNode.id + " you have isolated node id with arg\n");
+   //             udfNode = argumentNode;
+   //             return udfNode;
+   //          }
+   //        }
+   //       Node firstScan = nodeInserter(udfNode.first , argumentNode , arg);      
+   //       Node secondScan = nodeInserter(udfNode.second , argumentNode , arg); 
+   //       Node thirdScan = nodeInserter(udfNode.third , argumentNode , arg);
+   //       Node argsChanged = new Node( arg , firstScan, secondScan, thirdScan);
+   //       return argsChanged;
+   //    }  
+   //    return udfNode;
+   // }// end Node inserter
+
+
+
+      //       // if( second != null ) { //evaluate and expression2 if available
+      //       //   expr2 = second.evaluate();
+      //       // }
+      //       //Node node = SL3.root;
+      //       Node node = this;
+
+      //       Node fdnode = null; //fdnode means function definition node
+      //       boolean isStillSearchingTree = true;
+      //       String paramName1;
+      //       String paramName2 = null;
+      //       while ( node != null && isStillSearchingTree ) { //find user function
+      //         if ( node.first.info.equals(functionName) ) { // found it
+      //           fdnode = node.first;
+      //           paramName1 = fdnode.first.info;
+      //           //NOTE: change functionality to store/find node id and change info
+      //           //that way. current way overrides values and doesnt work for
+      //           //multiple repl calls
+      //           System.out.println("located " + functionName + " at node " + fdnode.id );
+      //           node = fdnode.second.first; //change node to list node child node
+      //           if(expr2 != null) { //update variable values
+      //             paramName2 = fdnode.first.first.info;
+      //           }
+      //           else {
+      //             Value r = new Value( "PlaceHolder" ); 
+      //             return r;
+      //           }
+      //           isStillSearchingTree = false;
+      //         }
+      //         else {
+      //          //node = node.second;
+      //           node = node.first;
+      //         }
+      //       }
+      //       System.out.println("fdnode.second.kind = " + fdnode.second.kind);
+      //       Value result = fdnode.second.evaluate(); //evaluate list of define function
+      //       System.out.println();
+      //       System.out.println("result = " + result.toString());
+      //       System.out.println();
+      //       return result;
+      //    }
       
-
-
-
-      else{
-         Value r = new Value( "There is an error reading the Node, Nothing found" );
-         return r;
-      } // else 
-
-   } //end evaluate
+      // else{
+      //    Value r = new Value( "There is an error reading the Node, Nothing found" );
+      //    return r;
+      // } // else 
 
 
 
 
+   // private void updateVariableValues(Node node, String name1, String name2, String value1, String value2) {
+   //    if(node != null) {
+   //      System.out.println();
+   //      System.out.println("updateVariableValues(): ");
+   //      System.out.println("node.kind = " + node.kind);
+   //      System.out.println("node.info = " + node.info);
+   //      System.out.println("name1 = " + name1);
+   //      System.out.println("name2 = " + name2);
+   //      //System.out.println("new value = " + value.toString());
+   //      System.out.println("entry1 = " + value1.toString());
+   //      if(value2 != null) {
+   //        System.out.println("entry2 = " + value2.toString());
+   //      }
+   //      System.out.println();
+   //      if( value2 != null ) { //if there are two parameters
+   //        if( node.info.equals(name1) ) {
+   //          System.out.println("node.value: " + node.info + "  to  " + value1);
+   //          //node.value = value1.toString();
+   //          node.info = value1;
 
-   private void updateVariableValues(Node node, String name1, String name2, String value1, String value2) {
-      if(node != null) {
-        System.out.println();
-        System.out.println("updateVariableValues(): ");
-        System.out.println("node.kind = " + node.kind);
-        System.out.println("node.info = " + node.info);
-        System.out.println("name1 = " + name1);
-        System.out.println("name2 = " + name2);
-        //System.out.println("new value = " + value.toString());
-        System.out.println("entry1 = " + value1.toString());
-        if(value2 != null) {
-          System.out.println("entry2 = " + value2.toString());
-        }
-        System.out.println();
-        if( value2 != null ) { //if there are two parameters
-          if( node.info.equals(name1) ) {
-            System.out.println("node.value: " + node.info + "  to  " + value1);
-            //node.value = value1.toString();
-            node.info = value1;
-
-          }
-          else if( node.info.equals(name2) ) {
-            //node.value = value2.toString();
-            node.info = value2;
-          }
-          updateVariableValues(node.first, name1, name2, value1, value2);
-          updateVariableValues(node.second, name1, name2, value1, value2);
-        }
-        else { //else there is only one parameter
-          if( node.info.equals(name1) ) {
-            //node.value = value1.toString();
-            node.info = value1;
-          }
-          updateVariableValues(node.first, name1, name2, value1, value2);
-          updateVariableValues(node.second, name1, name2, value1, value2);
-        }
-      }
-    }
+   //        }
+   //        else if( node.info.equals(name2) ) {
+   //          //node.value = value2.toString();
+   //          node.info = value2;
+   //        }
+   //        updateVariableValues(node.first, name1, name2, value1, value2);
+   //        updateVariableValues(node.second, name1, name2, value1, value2);
+   //      }
+   //      else { //else there is only one parameter
+   //        if( node.info.equals(name1) ) {
+   //          //node.value = value1.toString();
+   //          node.info = value1;
+   //        }
+   //        updateVariableValues(node.first, name1, name2, value1, value2);
+   //        updateVariableValues(node.second, name1, name2, value1, value2);
+   //      }
+   //    }
+   //  }
 
 
 
@@ -1108,77 +1378,77 @@ public Node insertNode( Node defNode , Node replNode){
 
 //    }// evaluate
 
-   private final static String[] bif0 = { "input", "nl" };
-   private final static String[] bif1 = { "sqrt", "cos", "sin", "atan", "round", "trunc", "not" };
-   private final static String[] bif2 = { "lt", "le", "eq", "ne", "pow", "or", "and" };
+   // private final static String[] bif0 = { "input", "nl" };
+   // private final static String[] bif1 = { "sqrt", "cos", "sin", "atan", "round", "trunc", "not" };
+   // private final static String[] bif2 = { "lt", "le", "eq", "ne", "pow", "or", "and" };
 
-   // return whether target is a member of array
-   private static boolean member( String target, String[] array ) {
-      for (int k=0; k<array.length; k++) {
-         if ( target.equals(array[k]) ) {
-            return true;
-         }
-      }
-      return false;
-   }
+   // // return whether target is a member of array
+   // private static boolean member( String target, String[] array ) {
+   //    for (int k=0; k<array.length; k++) {
+   //       if ( target.equals(array[k]) ) {
+   //          return true;
+   //       }
+   //    }
+   //    return false;
+   // }
 
-   // given a funcCall node, and for convenience its name,
-   // locate the function in the function defs and
-   // create new memory table with arguments values assigned
-   // to parameters
-   // Also, return root node of body of the function being called
-   private static Node passArgs( Node funcCallNode, String funcName ) {
+   // // given a funcCall node, and for convenience its name,
+   // // locate the function in the function defs and
+   // // create new memory table with arguments values assigned
+   // // to parameters
+   // // Also, return root node of body of the function being called
+   // private static Node passArgs( Node funcCallNode, String funcName ) {
 
-      // locate the function in the function definitions
+   //    // locate the function in the function definitions
 
-      Node node = root;  // the program node
-      node = node.second;  // now is the funcDefs node
-      Node fdnode = null;
-      while ( node != null && fdnode == null ) {
-         if ( node.first.info.equals(funcName) ) {// found it
-            fdnode = node.first;
-            System.out.println("located " + funcName + " at node " + fdnode.id );
-         }
-         else
-           node = node.second;
-      }
+   //    Node node = root;  // the program node
+   //    node = node.second;  // now is the funcDefs node
+   //    Node fdnode = null;
+   //    while ( node != null && fdnode == null ) {
+   //       if ( node.first.info.equals(funcName) ) {// found it
+   //          fdnode = node.first;
+   //          System.out.println("located " + funcName + " at node " + fdnode.id );
+   //       }
+   //       else
+   //         node = node.second;
+   //    }
 
-      MemTable newTable = new MemTable();
+   //    MemTable newTable = new MemTable();
 
-      if ( fdnode == null ) {// function not found
-         error( "Function definition for [" + funcName + "] not found" );
-         return null;
-      }
-      else {// function name found
-         Node pnode = fdnode.first; // current params node
-         Node anode = funcCallNode.first;  // current args node
-         while ( pnode != null && anode != null ) {
-            // store argument value under parameter name
-            newTable.store( pnode.first.info,
-                            anode.first.evaluate() );
-            // move ahead
-            pnode = pnode.second;
-            anode = anode.second;
-         }
+   //    if ( fdnode == null ) {// function not found
+   //       error( "Function definition for [" + funcName + "] not found" );
+   //       return null;
+   //    }
+   //    else {// function name found
+   //       Node pnode = fdnode.first; // current params node
+   //       Node anode = funcCallNode.first;  // current args node
+   //       while ( pnode != null && anode != null ) {
+   //          // store argument value under parameter name
+   //          newTable.store( pnode.first.info,
+   //                          anode.first.evaluate() );
+   //          // move ahead
+   //          pnode = pnode.second;
+   //          anode = anode.second;
+   //       }
 
-         // detect errors
-         if ( pnode != null ) {
-            error("there are more parameters than arguments");
-         }
-         else if ( anode != null ) {
-            error("there are more arguments than parameters");
-         }
+   //       // detect errors
+   //       if ( pnode != null ) {
+   //          error("there are more parameters than arguments");
+   //       }
+   //       else if ( anode != null ) {
+   //          error("there are more arguments than parameters");
+   //       }
 
-         System.out.println("at start of call to " + funcName + " memory table is:\n" + newTable );
+   //       System.out.println("at start of call to " + funcName + " memory table is:\n" + newTable );
 
-         // manage the memtable stack
-         memStack.add( newTable );
-         table = newTable;
+   //       // manage the memtable stack
+   //       memStack.add( newTable );
+   //       table = newTable;
 
-         return fdnode;
+   //       return fdnode;
 
-      }// function name found
+   //    }// function name found
 
-   }// passArguments
+   // }// passArguments
 
 }// Node

@@ -1,7 +1,17 @@
-(define (sum x y)
+( define ( ave x )
+   ( div (sum x) (len x))
+)
+
+(define (sum x)
    (if (null x)
        0
-       (plus x y)))
+       (plus (first x) (sum (rest x)))
+   )
+)
 
-
-
+(define (len x)
+   (if (null x)
+       0
+       (plus 1 (len (rest x)))
+   )
+)

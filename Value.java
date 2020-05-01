@@ -24,12 +24,24 @@ public class Value {
    public static Value ONE = new Value( 1 );
    
    private double number;
+   private String argument;
+   private String method;
+   private Value val;
    private LinkedList<Value> list;
 
    public Value( double num ) {
       number = num;
       list = null;  //
    }
+
+   // This will be used to be put into an array
+   public Value( String argDesc , String meth , Value num ) {
+      method = meth;
+      val = num;
+      argument = argDesc;
+      list = null;  //
+   }
+
 
    public Value( String s ) {
       number = Double.parseDouble( s );
@@ -54,6 +66,19 @@ public class Value {
          }
       }
    }// copy constructor
+
+
+   public String getArg(){
+      return argument;
+   }
+   public Value getValue(){
+      return val;
+   }
+   public String getMeth(){
+      return method;
+   }
+
+
 
    // represent this value as a string
    public String toString() {
