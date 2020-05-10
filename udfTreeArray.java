@@ -32,18 +32,6 @@ class udfTreeArray{
     }
     
     
-    
-    
-    
-    // get
-    // // Get the array from the CorgiArray index
-    // public Node get( String info ){
-
-    //     for( i = 0; )
-    //     double[] returnArray = udfTreeArray.get( index );
-
-    //     return returnArray;
-    // } // get
 
 
 

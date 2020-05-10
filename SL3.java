@@ -23,28 +23,7 @@ public class SL3 {
 
       Node defsRoot = parser.parseDefs();
 
-      // display parse tree for debugging/testing:
-/*
-      viewer = new TreeViewer("Parse Tree", 0, 0, 800, 500, 
-                                              defsRoot );
-      while ( 2 < Math.sqrt(9) ){}
-*/
 
-      // REPL
-
-
-
-
-
-//I got rid of this.  I figure I can put defRoot into the third slot of the Node
-
-
-   //   Node.init( defsRoot );    // inform Node of the defs tree
-
-
-      // do the full REPL with no tree viewing
-
-         // if the outputValue = 999999 then REPL will halt
          double outputValue = 0;
          while( 999999 != outputValue ) {
 
@@ -71,7 +50,6 @@ public class SL3 {
                //This is only relative to the users input
 //               String replOutput = value.toString();
 //               System.out.println(replOutput);
-
 
                //This is the combo node I created putting together the def node and REPL node,
                // Def node is 1 and 2 and REPL is node 3
